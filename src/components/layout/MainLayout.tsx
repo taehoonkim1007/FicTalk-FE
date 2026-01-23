@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
 
-export function MainLayout() {
+export const MainLayout = () => {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
@@ -13,4 +13,4 @@ export function MainLayout() {
       <Footer />
     </div>
   );
-}
+};
