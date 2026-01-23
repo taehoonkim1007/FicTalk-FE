@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { ChevronLeft, ChevronRight, PlayCircle } from "lucide-react";
@@ -19,18 +19,43 @@ const getParticle = (name: string) => {
 export const HomePage = () => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Auto-play Carousel Logic
-  useEffect(() => {
-    const interval = setInterval(() => {
+  // 타이머 리셋 함수
+  const resetInterval = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    intervalRef.current = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
-    }, 5000); // Change every 5 seconds
-    return () => clearInterval(interval);
+    }, 5000);
   }, []);
 
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
-  const prevSlide = () =>
+  // 자동 재생 시작 및 cleanup
+  useEffect(() => {
+    resetInterval();
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [resetInterval]);
+
+  // 슬라이드 선택 시 타이머 리셋
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+    resetInterval();
+  };
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+    resetInterval();
+  };
+
+  const prevSlide = () => {
     setCurrentSlide((prev) => (prev - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
+    resetInterval();
+  };
 
   const handleStorySelect = (story: Story) => {
     // TODO: Navigate to story detail page
@@ -101,13 +126,18 @@ export const HomePage = () => {
         >
           <ChevronRight className="h-8 w-8" />
         </button>
-        <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 gap-2">
+        <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 gap-1">
           {HERO_SLIDES.map((_, i) => (
             <button
               key={i}
-              onClick={() => setCurrentSlide(i)}
-              className={`h-1.5 rounded-full transition-all ${i === currentSlide ? "w-6 bg-white" : "w-1.5 bg-white/40"}`}
-            />
+              onClick={() => goToSlide(i)}
+              className="flex h-6 w-6 cursor-pointer items-center justify-center"
+              aria-label={`슬라이드 ${i + 1}로 이동`}
+            >
+              <span
+                className={`block h-1.5 rounded-full transition-all ${i === currentSlide ? "w-5 bg-white" : "w-1.5 bg-white/40"}`}
+              />
+            </button>
           ))}
         </div>
       </section>
