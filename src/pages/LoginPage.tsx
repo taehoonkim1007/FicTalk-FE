@@ -1,23 +1,10 @@
-import { useNavigate } from "react-router-dom";
-
-import { Info, User as UserIcon, X } from "lucide-react";
+import { Info, Loader2, User as UserIcon, X } from "lucide-react";
 
 import { Logo } from "@/components/ui/logo";
-import { useAuthStore } from "@/stores/useAuthStore";
+import { useLogin } from "@/hooks/useLogin";
 
 export const LoginPage = () => {
-  const navigate = useNavigate();
-  const { actions } = useAuthStore();
-
-  const handleGoogleLogin = () => {
-    // 백엔드의 Google 인증 엔드포인트로 리다이렉트
-    window.location.href = `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/auth/google`;
-  };
-
-  const handleGuestLogin = () => {
-    actions.increaseGuestUsage();
-    void navigate("/");
-  };
+  const { loginWithGoogle, loginAsGuest, goBack, isGuestLoading } = useLogin();
 
   return (
     <div className="animate-in fade-in relative flex min-h-screen items-center justify-center overflow-hidden bg-[#121212] p-4 duration-300">
@@ -29,7 +16,7 @@ export const LoginPage = () => {
 
       <div className="relative z-10 flex w-full max-w-[400px] flex-col items-center rounded-[32px] border border-stone-800/60 bg-[#1E1E1E] p-8 text-center shadow-2xl">
         <button
-          onClick={() => void navigate("/")}
+          onClick={() => void goBack()}
           className="absolute top-5 right-5 rounded-full p-2 text-stone-500 transition-colors hover:bg-white/5 hover:text-white"
         >
           <X className="h-6 w-6" />
@@ -62,7 +49,7 @@ export const LoginPage = () => {
           </div>
 
           <button
-            onClick={() => handleGoogleLogin()}
+            onClick={loginWithGoogle}
             className="flex w-full items-center justify-center gap-3 rounded-2xl bg-white py-3.5 font-bold text-stone-900 shadow-lg transition-transform hover:bg-stone-200 active:scale-[0.98]"
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5">
@@ -91,11 +78,18 @@ export const LoginPage = () => {
           </div>
 
           <button
-            onClick={handleGuestLogin}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-stone-700/50 bg-stone-800 py-3.5 font-bold text-stone-300 transition-colors hover:bg-stone-700"
+            onClick={loginAsGuest}
+            disabled={isGuestLoading}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-stone-700/50 bg-stone-800 py-3.5 font-bold text-stone-300 transition-colors hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <UserIcon className="h-5 w-5" />
-            <span className="text-[14px]">게스트로 계속하기</span>
+            {isGuestLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <UserIcon className="h-5 w-5" />
+            )}
+            <span className="text-[14px]">
+              {isGuestLoading ? "로그인 중..." : "게스트로 계속하기"}
+            </span>
           </button>
         </div>
 

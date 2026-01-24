@@ -1,22 +1,19 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { Menu, MessageSquare, Search } from "lucide-react";
+import { Loader2, Menu, MessageSquare, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
+import { useLogout } from "@/hooks/useLogout";
 import { CATEGORIES } from "@/mocks";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 export const Header = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, actions } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
+  const { logout, isLoggingOut } = useLogout();
   const [activeCategory, setActiveCategory] = useState("추천");
-
-  const handleLogout = () => {
-    actions.logout();
-    void navigate("/");
-  };
 
   const handleCategoryClick = (cat: string) => {
     setActiveCategory(cat);
@@ -61,8 +58,14 @@ export const Header = () => {
           </Button>
 
           {isAuthenticated ? (
-            <Button size="sm" variant="white" className="hidden md:flex" onClick={handleLogout}>
-              로그아웃
+            <Button
+              size="sm"
+              variant="white"
+              className="hidden md:flex"
+              onClick={logout}
+              disabled={isLoggingOut}
+            >
+              {isLoggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : "로그아웃"}
             </Button>
           ) : (
             <Button

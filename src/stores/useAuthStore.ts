@@ -1,32 +1,23 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-import type { User } from "@/types";
+import type { CurrentUser } from "@/types/auth";
 
 // ==========================================
 // State & Actions Interface
 // ==========================================
 interface AuthState {
-  // 회원용
-  user: User | null;
+  user: CurrentUser | null;
   accessToken: string | null;
   isAuthenticated: boolean;
+  guestId: string | undefined;
 
-  // 게스트용
-  guestUsageCount: number;
-  maxGuestLimit: number;
-
-  // 액션 그룹
   actions: {
-    // 회원용
-    login: (user: User, token: string) => void;
-    logout: () => void;
+    setUser: (user: CurrentUser) => void;
     setAccessToken: (token: string) => void;
+    setGuestId: (guestId: string) => void;
+    logout: () => void;
     clearAuth: () => void;
-
-    // 게스트용
-    increaseGuestUsage: () => void;
-    resetGuestUsage: () => void;
   };
 }
 
@@ -36,41 +27,38 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      // 회원용 초기값
       user: null,
       accessToken: null,
       isAuthenticated: false,
+      guestId: undefined,
 
-      // 게스트용 초기값
-      guestUsageCount: 0,
-      maxGuestLimit: 5,
-
-      // 액션 그룹
       actions: {
-        // 회원용 액션
-        login: (user: User, token: string) => {
-          set({ user, accessToken: token, isAuthenticated: true });
+        setUser: (user: CurrentUser) => {
+          set({ user, isAuthenticated: true });
         },
 
         setAccessToken: (token: string) => {
           set({ accessToken: token, isAuthenticated: true });
         },
 
-        logout: () => set({ user: null, accessToken: null, isAuthenticated: false }),
+        setGuestId: (guestId: string) => {
+          set({ guestId });
+        },
 
-        clearAuth: () => set({ user: null, accessToken: null, isAuthenticated: false }),
+        logout: () => {
+          set({ user: null, accessToken: null, isAuthenticated: false });
+        },
 
-        // 게스트용 액션
-        increaseGuestUsage: () => set((state) => ({ guestUsageCount: state.guestUsageCount + 1 })),
-
-        resetGuestUsage: () => set({ guestUsageCount: 0 }),
+        clearAuth: () => {
+          set({ user: null, accessToken: null, isAuthenticated: false, guestId: undefined });
+        },
       },
     }),
     {
       name: "auth-storage",
       partialize: (state) => ({
-        user: state.user,
-        guestUsageCount: state.guestUsageCount,
+        accessToken: state.accessToken,
+        guestId: state.guestId,
       }),
     },
   ),
