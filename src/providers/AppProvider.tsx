@@ -1,3 +1,5 @@
+import { Toaster } from "@/components/ui/sonner";
+
 import { QueryProvider } from "./QueryProvider";
 
 interface AppProviderProps {
@@ -9,6 +11,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     <QueryProvider>
       {/* 추후 다른 Provider들 (ThemeProvider, GlobalModalProvider 등) 추가 위치 */}
       {children}
+      <Toaster />
     </QueryProvider>
   );
 };

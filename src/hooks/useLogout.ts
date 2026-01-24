@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
 
+import { toast } from "sonner";
+
 import { useLogout as useLogoutMutation } from "@/queries/useAuthQueries";
 import { useAuthStore } from "@/stores/useAuthStore";
 
@@ -12,6 +14,7 @@ export const useLogout = () => {
     mutate(undefined, {
       onSuccess: () => {
         actions.clearAuth();
+        toast.success("로그아웃 되었습니다");
         void navigate("/");
       },
       onError: () => {
