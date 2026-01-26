@@ -42,6 +42,7 @@ export default defineConfig([
 
       // TypeScript 규칙
       "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-unsafe-assignment": "error",
       "@typescript-eslint/no-floating-promises": "error",
       "@typescript-eslint/consistent-type-imports": [
         "error",
