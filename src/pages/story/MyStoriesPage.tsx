@@ -1,0 +1,141 @@
+import { useNavigate } from "react-router-dom";
+
+import { ChevronRight, Loader2, PenSquare, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/messages";
+import { useDeleteStory, useMyStories } from "@/queries/useStoriesQueries";
+import { useAuthStore } from "@/stores/useAuthStore";
+import type { Story } from "@/types/story";
+
+export const MyStoriesPage = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuthStore();
+
+  const { data, isLoading, isError } = useMyStories(isAuthenticated);
+  const { mutate: deleteStory } = useDeleteStory();
+
+  const handleStorySelect = (story: Story) => {
+    void navigate(`/stories/${story.id}`);
+  };
+
+  const handleEditStory = (e: React.MouseEvent, storyId: string) => {
+    e.stopPropagation();
+    void navigate(`/stories/${storyId}/edit`);
+  };
+
+  const handleDeleteStory = (e: React.MouseEvent, storyId: string) => {
+    e.stopPropagation();
+    if (!window.confirm("정말로 이 스토리를 삭제하시겠습니까?")) return;
+
+    deleteStory(storyId, {
+      onSuccess: () => {
+        toast.success(SUCCESS_MESSAGES.STORY_DELETED);
+      },
+      onError: () => {
+        toast.error(ERROR_MESSAGES.STORY_DELETE_FAILED);
+      },
+    });
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <main className="flex min-h-[50vh] flex-col items-center justify-center gap-4">
+        <p className="text-stone-400">로그인이 필요합니다.</p>
+        <Button onClick={() => void navigate("/login")}>로그인하기</Button>
+      </main>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <main className="flex min-h-[50vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+      </main>
+    );
+  }
+
+  if (isError) {
+    return (
+      <main className="flex min-h-[50vh] flex-col items-center justify-center">
+        <p className="text-red-400">스토리를 불러오는 중 오류가 발생했습니다.</p>
+      </main>
+    );
+  }
+
+  return (
+    <main className="pb-20">
+      <section className="mx-auto max-w-7xl px-4 py-8">
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-white">내 스토리</h1>
+            <p className="mt-2 text-sm text-stone-500">{data?.stories.length || 0}개의 스토리</p>
+          </div>
+          <Button
+            className="bg-emerald-500 text-black hover:bg-emerald-400"
+            onClick={() => void navigate("/stories/new")}
+          >
+            <Plus className="mr-2 h-4 w-4" /> 새 스토리 작성
+          </Button>
+        </div>
+
+        {!data?.stories.length ? (
+          <div className="flex h-48 flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-stone-700 bg-stone-900/50">
+            <p className="text-stone-500">아직 작성한 스토리가 없습니다</p>
+            <Button
+              variant="ghost"
+              className="text-emerald-500"
+              onClick={() => void navigate("/stories/new")}
+            >
+              <Plus className="mr-2 h-4 w-4" /> 첫 스토리 작성하기
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-3">
+            {data.stories.map((story) => (
+              <div
+                key={story.id}
+                className="group cursor-pointer overflow-hidden rounded-xl bg-stone-900 transition-all hover:ring-2 hover:ring-emerald-500"
+                onClick={() => handleStorySelect(story)}
+              >
+                <div className={`relative h-32 overflow-hidden ${story.coverColor}`}>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
+                  <div className="absolute right-3 bottom-3 left-3">
+                    <h3 className="truncate text-lg leading-tight font-bold text-white">
+                      {story.title}
+                    </h3>
+                  </div>
+                  {/* Action Buttons */}
+                  <div className="absolute top-2 right-2 flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                    <button
+                      onClick={(e) => handleEditStory(e, story.id)}
+                      className="rounded-full bg-stone-900/80 p-2 text-stone-300 transition-colors hover:bg-stone-800 hover:text-white"
+                    >
+                      <PenSquare className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={(e) => handleDeleteStory(e, story.id)}
+                      className="rounded-full bg-stone-900/80 p-2 text-stone-300 transition-colors hover:bg-red-900 hover:text-red-400"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+                <div className="space-y-3 p-4">
+                  <p className="line-clamp-2 text-sm text-stone-400">{story.description}</p>
+                  <div className="flex items-center justify-between border-t border-stone-800 pt-2 text-xs text-stone-500">
+                    <span className="rounded bg-stone-800 px-2 py-0.5">{story.category.name}</span>
+                    <span className="flex items-center gap-1 font-medium transition-colors hover:text-emerald-500">
+                      상세보기 <ChevronRight className="h-3 w-3" />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </main>
+  );
+};

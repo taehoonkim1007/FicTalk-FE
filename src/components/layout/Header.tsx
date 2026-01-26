@@ -1,29 +1,32 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { Loader2, LogIn, LogOut, MessageSquare, Search, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 import { useLogout } from "@/hooks/useLogout";
-import { CATEGORIES } from "@/mocks";
+import { useCategories } from "@/queries/useCategoriesQueries";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 export const Header = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated } = useAuthStore();
   const { logout, isLoggingOut } = useLogout();
-  const [activeCategory, setActiveCategory] = useState("추천");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  const handleCategoryClick = (cat: string) => {
-    setActiveCategory(cat);
-    // TODO: Implement Category Routing or Filtering
-    if (cat === "추천") void navigate("/");
-    else if (cat === "세계 문학") void navigate("/world-lit");
-    else if (cat === "한국 문학") void navigate("/korean-lit");
-    else if (cat === "창작") void navigate("/creative");
-    else void navigate("/");
+  const { data: categories = [] } = useCategories();
+
+  // 현재 경로에서 활성 카테고리 추출
+  const currentSlug = location.pathname.slice(1) || "home";
+
+  const handleCategoryClick = (slug: string) => {
+    if (slug === "home") {
+      void navigate("/");
+    } else {
+      void navigate(`/${slug}`);
+    }
   };
 
   return (
@@ -111,17 +114,30 @@ export const Header = () => {
       {/* Category Filter Bar */}
       <div className="no-scrollbar w-full overflow-x-auto border-t border-white/5">
         <div className="mx-auto flex h-12 max-w-7xl items-center gap-2 px-4">
-          {CATEGORIES.map((cat, idx) => (
+          {/* 홈 버튼 */}
+          <button
+            onClick={() => handleCategoryClick("home")}
+            className={`rounded-full px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-colors ${
+              currentSlug === "home"
+                ? "bg-white text-black"
+                : "text-stone-400 hover:bg-white/10 hover:text-white"
+            }`}
+          >
+            홈
+          </button>
+
+          {/* 동적 카테고리 */}
+          {categories.map((category) => (
             <button
-              key={idx}
-              onClick={() => handleCategoryClick(cat)}
+              key={category.id}
+              onClick={() => handleCategoryClick(category.slug)}
               className={`rounded-full px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-colors ${
-                activeCategory === cat
+                currentSlug === category.slug
                   ? "bg-white text-black"
                   : "text-stone-400 hover:bg-white/10 hover:text-white"
               }`}
             >
-              {cat}
+              {category.name}
             </button>
           ))}
         </div>

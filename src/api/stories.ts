@@ -1,0 +1,75 @@
+import type {
+  CharactersListResponse,
+  CreateStoryRequest,
+  GetStoriesParams,
+  HeroSlide,
+  StoriesListResponse,
+  StoryDetail,
+  UpdateStoryRequest,
+} from "@/types/story";
+
+import { apiClient } from "./client";
+
+/**
+ * 히어로 슬라이드 목록 조회
+ */
+export const getHeroSlides = async (): Promise<HeroSlide[]> => {
+  const response = await apiClient.get<HeroSlide[]>("/stories/hero-slides");
+  return response.data;
+};
+
+/**
+ * 스토리 목록 조회 (필터, 페이지네이션)
+ */
+export const getStories = async (params?: GetStoriesParams): Promise<StoriesListResponse> => {
+  const response = await apiClient.get<StoriesListResponse>("/stories", { params });
+  return response.data;
+};
+
+/**
+ * 스토리 상세 조회
+ */
+export const getStoryById = async (id: string): Promise<StoryDetail> => {
+  const response = await apiClient.get<StoryDetail>(`/stories/${id}`);
+  return response.data;
+};
+
+/**
+ * 스토리의 캐릭터 목록 조회
+ */
+export const getStoryCharacters = async (storyId: string): Promise<CharactersListResponse> => {
+  const response = await apiClient.get<CharactersListResponse>(`/stories/${storyId}/characters`);
+  return response.data;
+};
+
+/**
+ * 내가 작성한 스토리 목록 조회
+ */
+export const getMyStories = async (): Promise<StoriesListResponse> => {
+  const response = await apiClient.get<StoriesListResponse>("/stories/me");
+  return response.data;
+};
+
+/**
+ * 스토리 생성
+ */
+export const createStory = async (data: CreateStoryRequest): Promise<StoryDetail> => {
+  const response = await apiClient.post<StoryDetail>("/stories", data);
+  return response.data;
+};
+
+/**
+ * 스토리 수정
+ */
+export const updateStory = async (id: string, data: UpdateStoryRequest): Promise<StoryDetail> => {
+  const response = await apiClient.patch<StoryDetail>(`/stories/${id}`, data);
+  return response.data;
+};
+
+/**
+ * 스토리 삭제
+ */
+export const deleteStory = async (id: string): Promise<{ message: string }> => {
+  const response = await apiClient.delete<{ message: string }>(`/stories/${id}`);
+  return response.data;
+};
