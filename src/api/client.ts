@@ -1,15 +1,55 @@
-import axios, { type AxiosError } from "axios";
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
+import { toast } from "sonner";
 
+import { ERROR_MESSAGES } from "@/constants/messages";
 import { useAuthStore } from "@/stores/useAuthStore";
+import type { RefreshTokenResponse } from "@/types/auth";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
+
+// ==========================================
+// API Clients
+// ==========================================
+
+/** 메인 API 클라이언트 */
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "/api",
+  baseURL: API_BASE_URL,
   timeout: 10000,
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
+
+/** 토큰 갱신 전용 클라이언트 (interceptor 없음) */
+const refreshClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 10000,
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// ==========================================
+// 토큰 갱신 상태 관리
+// ==========================================
+
+let isRefreshing = false;
+let refreshSubscribers: ((token: string) => void)[] = [];
+
+const onRefreshed = (token: string) => {
+  refreshSubscribers.forEach((callback) => callback(token));
+  refreshSubscribers = [];
+};
+
+const addRefreshSubscriber = (callback: (token: string) => void) => {
+  refreshSubscribers.push(callback);
+};
+
+// ==========================================
+// Request Interceptor
+// ==========================================
 
 apiClient.interceptors.request.use(
   (config) => {
@@ -20,41 +60,73 @@ apiClient.interceptors.request.use(
     return config;
   },
   (error: AxiosError) => {
-    throw error;
+    return Promise.reject(error);
   },
 );
 
+// ==========================================
+// Response Interceptor
+// ==========================================
+
 apiClient.interceptors.response.use(
   (response) => response,
-  (error: AxiosError) => {
+  async (error: AxiosError) => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+
+    // 401 에러 처리
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      // 이미 갱신 중이면 대기
+      if (isRefreshing) {
+        return new Promise((resolve) => {
+          addRefreshSubscriber((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            resolve(apiClient(originalRequest));
+          });
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        // 순수 axios로 토큰 갱신 (interceptor 우회)
+        const { data } = await refreshClient.post<RefreshTokenResponse>("/auth/refresh");
+        const { accessToken } = data;
+
+        useAuthStore.getState().actions.setAccessToken(accessToken);
+        onRefreshed(accessToken);
+
+        // 원래 요청 재시도
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        return apiClient(originalRequest);
+      } catch {
+        useAuthStore.getState().actions.clearAuth();
+        window.location.href = "/login";
+        return Promise.reject(error);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    // 기타 에러 처리
     if (error.response) {
       const { status } = error.response;
 
       switch (status) {
-        case 401:
-          // 인증 실패: 로그아웃 처리 및 로그인 페이지로 리다이렉트
-          useAuthStore.getState().actions.clearAuth();
-          window.location.href = "/login";
-          break;
         case 403:
-          // 권한 없음: 접근 거부 알림 (추후 Toast 등으로 교체 권장)
-          console.error("접근 권한이 없습니다.");
+          toast.error(ERROR_MESSAGES.FORBIDDEN);
           break;
         case 404:
-          // 리소스 없음 (추후 Toast 등으로 교체 권장)
-          console.error("요청한 리소스를 찾을 수 없습니다.");
+          toast.error(ERROR_MESSAGES.NOT_FOUND);
           break;
         case 500:
-          // 서버 내부 오류 (추후 Toast 등으로 교체 권장)
-          console.error("서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+          toast.error(ERROR_MESSAGES.SERVER_ERROR);
           break;
-        default:
-          console.error(`알 수 없는 오류가 발생했습니다. (Status: ${status})`);
       }
     } else {
-      // 네트워크 에러 등 응답이 없는 경우
-      console.error("네트워크 오류 또는 서버 응답이 없습니다.");
+      toast.error(ERROR_MESSAGES.NETWORK_ERROR);
     }
-    throw error;
+
+    return Promise.reject(error);
   },
 );

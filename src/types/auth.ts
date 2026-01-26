@@ -62,3 +62,7 @@ export interface GuestTokenResponse {
 export interface LogoutResponse {
   message: string;
 }
+
+export interface RefreshTokenResponse {
+  accessToken: string;
+}
