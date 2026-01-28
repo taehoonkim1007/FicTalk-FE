@@ -1,3 +1,4 @@
+import { type MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { ChevronRight, Loader2, PenSquare, Plus, Trash2 } from "lucide-react";
@@ -5,6 +6,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/messages";
+import { getImageUrl } from "@/lib/image";
 import { useDeleteStory, useMyStories } from "@/queries/useStoriesQueries";
 import { useAuthStore } from "@/stores/useAuthStore";
 import type { Story } from "@/types/story";
@@ -13,19 +15,21 @@ export const MyStoriesPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
 
-  const { data, isLoading, isError } = useMyStories(isAuthenticated);
+  const { data: stories = [], isLoading, isError } = useMyStories(isAuthenticated);
   const { mutate: deleteStory } = useDeleteStory();
 
   const handleStorySelect = (story: Story) => {
-    void navigate(`/stories/${story.id}`);
+    void navigate(`/stories/${story.id}`, {
+      state: { from: "/my-stories" },
+    });
   };
 
-  const handleEditStory = (e: React.MouseEvent, storyId: string) => {
+  const handleEditStory = (e: MouseEvent, storyId: string) => {
     e.stopPropagation();
     void navigate(`/stories/${storyId}/edit`);
   };
 
-  const handleDeleteStory = (e: React.MouseEvent, storyId: string) => {
+  const handleDeleteStory = (e: MouseEvent, storyId: string) => {
     e.stopPropagation();
     if (!window.confirm("정말로 이 스토리를 삭제하시겠습니까?")) return;
 
@@ -70,36 +74,53 @@ export const MyStoriesPage = () => {
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-white">내 스토리</h1>
-            <p className="mt-2 text-sm text-stone-500">{data?.stories.length || 0}개의 스토리</p>
+            <p className="mt-2 text-sm text-stone-500">{stories.length}개의 스토리</p>
           </div>
           <Button
             className="bg-emerald-500 text-black hover:bg-emerald-400"
-            onClick={() => void navigate("/stories/new")}
+            onClick={() =>
+              void navigate("/stories/new", {
+                state: { from: "/my-stories" },
+              })
+            }
           >
             <Plus className="mr-2 h-4 w-4" /> 새 스토리 작성
           </Button>
         </div>
 
-        {!data?.stories.length ? (
+        {stories.length === 0 ? (
           <div className="flex h-48 flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-stone-700 bg-stone-900/50">
             <p className="text-stone-500">아직 작성한 스토리가 없습니다</p>
             <Button
               variant="ghost"
               className="text-emerald-500"
-              onClick={() => void navigate("/stories/new")}
+              onClick={() =>
+                void navigate("/stories/new", {
+                  state: { from: "/my-stories" },
+                })
+              }
             >
               <Plus className="mr-2 h-4 w-4" /> 첫 스토리 작성하기
             </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-3">
-            {data.stories.map((story) => (
+            {stories.map((story) => (
               <div
                 key={story.id}
                 className="group cursor-pointer overflow-hidden rounded-xl bg-stone-900 transition-all hover:ring-2 hover:ring-emerald-500"
                 onClick={() => handleStorySelect(story)}
               >
-                <div className={`relative h-32 overflow-hidden ${story.coverColor}`}>
+                <div
+                  className={`relative h-32 overflow-hidden ${!story.coverImage ? story.coverColor : ""}`}
+                >
+                  {story.coverImage && (
+                    <img
+                      src={getImageUrl(story.coverImage) || ""}
+                      alt={story.title}
+                      className="h-full w-full object-cover"
+                    />
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
                   <div className="absolute right-3 bottom-3 left-3">
                     <h3 className="truncate text-lg leading-tight font-bold text-white">
