@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   createStory,
@@ -50,6 +50,7 @@ export const useStories = (params?: GetStoriesParams) => {
     queryKey: storiesKeys.list(params),
     queryFn: () => getStories(params),
     staleTime: 1000 * 60 * 5,
+    placeholderData: keepPreviousData,
   });
 };
 

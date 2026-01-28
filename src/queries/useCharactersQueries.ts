@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   createCharacter,
@@ -38,6 +38,7 @@ export const useCharacters = (params: GetCharactersParams) => {
   return useQuery({
     queryKey: charactersKeys.list(params),
     queryFn: () => getCharacters(params),
+    placeholderData: keepPreviousData,
   });
 };
 

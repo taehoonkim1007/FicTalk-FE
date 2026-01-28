@@ -119,16 +119,16 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
       <div>
         <div className="mb-2 flex items-center justify-between">
           <label className="text-sm text-stone-400">줄거리 *</label>
-          <span className="text-sm text-stone-500">{summary.length} / 3000</span>
+          <span className="text-sm text-stone-500">{summary.length} / 4000</span>
         </div>
         <textarea
           value={summary}
           onChange={(e) => setSummary(e.target.value)}
-          maxLength={3000}
+          maxLength={4000}
           required
           rows={8}
           className="w-full resize-none rounded-lg border-0 bg-stone-900 px-4 py-3.5 text-white placeholder-stone-500 ring-1 ring-stone-800 outline-none focus:ring-emerald-500"
-          placeholder="작품의 전체적인 줄거리를 입력해주세요. (최대 3000자)"
+          placeholder="작품의 전체적인 줄거리를 입력해주세요. (최대 4000자)"
         />
       </div>
 

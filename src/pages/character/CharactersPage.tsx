@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { ChevronRight, Loader2, Plus } from "lucide-react";
@@ -5,6 +6,7 @@ import { ChevronRight, Loader2, Plus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Pagination } from "@/components/ui/pagination";
 import { useCategoryMeta } from "@/hooks/useCategoryMeta";
 import { getImageUrl } from "@/lib/image";
 import { useCharacters } from "@/queries/useCharactersQueries";
@@ -13,9 +15,12 @@ import type { CharacterWithStory } from "@/types/story";
 export const CharactersPage = () => {
   const navigate = useNavigate();
   const { categorySlug } = useParams<{ categorySlug: string }>();
+  const [page, setPage] = useState(1);
 
   const { data, isLoading, isError } = useCharacters({
     category: categorySlug,
+    page,
+    limit: 12,
   });
 
   const { Icon, title, description, colorClass } = useCategoryMeta(categorySlug);
@@ -163,19 +168,12 @@ export const CharactersPage = () => {
 
         {/* 페이지네이션 */}
         {data?.pagination && data.pagination.totalPages > 1 && (
-          <div className="mt-8 flex justify-center gap-2">
-            {Array.from({ length: data.pagination.totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                className={`rounded px-3 py-1 text-sm ${
-                  page === data.pagination.page
-                    ? "bg-emerald-500 text-black"
-                    : "bg-stone-800 text-stone-400 hover:bg-stone-700"
-                }`}
-              >
-                {page}
-              </button>
-            ))}
+          <div className="mt-8">
+            <Pagination
+              currentPage={data.pagination.page}
+              totalPages={data.pagination.totalPages}
+              onPageChange={setPage}
+            />
           </div>
         )}
       </section>

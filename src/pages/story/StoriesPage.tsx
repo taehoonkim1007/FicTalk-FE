@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { Loader2, Plus } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Pagination } from "@/components/ui/pagination";
 import { useCategoryMeta } from "@/hooks/useCategoryMeta";
 import { getImageUrl } from "@/lib/image";
 import { useStories } from "@/queries/useStoriesQueries";
@@ -12,9 +14,12 @@ import type { Story } from "@/types/story";
 export const StoriesPage = () => {
   const navigate = useNavigate();
   const { categorySlug } = useParams<{ categorySlug: string }>();
+  const [page, setPage] = useState(1);
 
   const { data, isLoading, isError } = useStories({
     category: categorySlug,
+    page,
+    limit: 12,
   });
 
   const { Icon, title, description, colorClass } = useCategoryMeta(categorySlug);
@@ -137,21 +142,14 @@ export const StoriesPage = () => {
           </div>
         )}
 
-        {/* Pagination container */}
+        {/* Pagination */}
         {data?.pagination && data.pagination.totalPages > 1 && (
-          <div className="mt-8 flex justify-center gap-2">
-            {Array.from({ length: data.pagination.totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                className={`rounded px-3 py-1 text-sm ${
-                  page === data.pagination.page
-                    ? "bg-emerald-500 text-black"
-                    : "bg-stone-800 text-stone-400 hover:bg-stone-700"
-                }`}
-              >
-                {page}
-              </button>
-            ))}
+          <div className="mt-8">
+            <Pagination
+              currentPage={data.pagination.page}
+              totalPages={data.pagination.totalPages}
+              onPageChange={setPage}
+            />
           </div>
         )}
       </section>
