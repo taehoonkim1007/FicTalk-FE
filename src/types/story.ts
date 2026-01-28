@@ -50,6 +50,7 @@ export interface CharacterWithStory {
   story: {
     id: string;
     title: string;
+    seriesTitle: string | null;
     authorName: string;
     coverColor: string;
     coverImage: string | null;
@@ -61,6 +62,7 @@ export interface CharacterDetailWithStory extends CharacterDetail {
   story: {
     id: string;
     title: string;
+    seriesTitle: string | null;
     authorName: string;
     coverColor: string;
     coverImage: string | null;
@@ -81,6 +83,7 @@ export interface StoryCreator {
 export interface Story {
   id: string;
   title: string;
+  seriesTitle: string | null;
   authorName: string;
   description: string;
   coverColor: string;
@@ -106,6 +109,7 @@ export interface HeroSlide {
   story: {
     id: string;
     title: string;
+    seriesTitle: string | null;
     authorName: string;
     coverColor: string;
     coverImage: string | null;
@@ -156,6 +160,7 @@ export interface CreateCharacterRequest {
 
 export interface CreateStoryRequest {
   title: string;
+  seriesTitle?: string;
   authorName: string;
   description: string;
   summary: string;
@@ -166,6 +171,7 @@ export interface CreateStoryRequest {
 
 export interface UpdateStoryRequest {
   title?: string;
+  seriesTitle?: string;
   authorName?: string;
   description?: string;
   summary?: string;

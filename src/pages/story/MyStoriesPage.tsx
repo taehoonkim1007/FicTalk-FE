@@ -126,6 +126,9 @@ export const MyStoriesPage = () => {
                     <h3 className="truncate text-lg leading-tight font-bold text-white">
                       {story.title}
                     </h3>
+                    {story.seriesTitle && (
+                      <p className="truncate text-xs text-stone-400 italic">{story.seriesTitle}</p>
+                    )}
                   </div>
                   {/* Action Buttons */}
                   <div className="absolute top-2 right-2 flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">

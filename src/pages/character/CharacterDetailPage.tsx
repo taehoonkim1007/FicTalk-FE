@@ -147,6 +147,9 @@ export const CharacterDetailPage = () => {
               </div>
               <div>
                 <h3 className="font-bold text-white">{character.story.title}</h3>
+                {character.story.seriesTitle && (
+                  <p className="text-sm text-stone-400 italic">{character.story.seriesTitle}</p>
+                )}
                 <p className="text-sm text-stone-400">{character.story.authorName}</p>
               </div>
             </div>

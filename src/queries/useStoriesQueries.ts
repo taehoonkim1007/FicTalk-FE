@@ -38,7 +38,7 @@ export const useHeroSlides = () => {
   return useQuery({
     queryKey: storiesKeys.heroSlides(),
     queryFn: getHeroSlides,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
   });
 };
 

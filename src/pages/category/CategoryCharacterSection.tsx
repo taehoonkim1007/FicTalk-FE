@@ -108,7 +108,9 @@ export const CategoryCharacterSection = ({ category }: CategoryCharacterSectionP
                     }
                     className="truncate text-white backdrop-blur-md"
                   >
-                    {character.story.title}
+                    {character.story.seriesTitle
+                      ? `${character.story.seriesTitle} - ${character.story.title}`
+                      : character.story.title}
                   </Badge>
                   <span className="flex shrink-0 items-center gap-1 font-medium transition-colors group-hover:text-emerald-500">
                     상세보기 <ChevronRight className="h-3 w-3" />

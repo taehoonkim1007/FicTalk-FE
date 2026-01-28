@@ -129,6 +129,11 @@ export const StoriesPage = () => {
                       <h3 className="text-2xl leading-tight font-bold text-balance text-white drop-shadow-lg">
                         {story.title}
                       </h3>
+                      {story.seriesTitle && (
+                        <p className="text-sm text-stone-400 italic drop-shadow-md">
+                          {story.seriesTitle}
+                        </p>
+                      )}
                       <p className="font-medium text-stone-300 drop-shadow-md">
                         {story.authorName}
                       </p>
