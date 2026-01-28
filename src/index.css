@@ -134,3 +134,32 @@
     @apply bg-background text-foreground;
   }
 }
+
+/*
+  Tailwind CSS Safelist
+  API 응답에서 사용되는 동적 클래스들은 여기에 명시적으로 언급되어야
+  Tailwind 컴파일러가 이를 스캔하고 해당하는 CSS를 생성합니다.
+*/
+.tailwind-safelist {
+  --safelist: "text-violet-400 text-violet-500 text-amber-400 text-amber-500 text-emerald-400 text-emerald-500 text-blue-400 text-blue-500 text-rose-400 text-rose-500 text-indigo-400 text-indigo-500 text-sky-400 text-sky-500 text-orange-400 text-orange-500";
+
+  /* 배경색 safelist - 캐릭터/스토리 이미지 폴백 색상 */
+  @apply bg-sky-200 bg-sky-900;
+  @apply bg-emerald-200 bg-emerald-900;
+  @apply bg-slate-300 bg-slate-800 bg-slate-900;
+  @apply bg-stone-300 bg-stone-400 bg-stone-800 bg-stone-900;
+  @apply bg-blue-300 bg-blue-400 bg-blue-500 bg-blue-800 bg-blue-900 bg-blue-950;
+  @apply bg-neutral-400 bg-neutral-900;
+  @apply bg-rose-200 bg-rose-900 bg-rose-950;
+  @apply bg-zinc-200 bg-zinc-300 bg-zinc-700 bg-zinc-800;
+  @apply bg-indigo-200 bg-indigo-900 bg-indigo-950;
+  @apply bg-violet-200 bg-violet-900;
+  @apply bg-gray-300 bg-gray-800;
+  @apply bg-lime-200 bg-lime-900;
+  @apply bg-orange-200 bg-orange-300 bg-orange-900;
+  @apply bg-yellow-200 bg-yellow-900;
+  @apply bg-purple-300 bg-purple-900 bg-purple-950;
+  @apply bg-pink-200 bg-pink-900;
+  @apply bg-red-200 bg-red-400 bg-red-900 bg-red-950;
+  @apply bg-cyan-400 bg-cyan-950;
+}

@@ -10,6 +10,11 @@ export const SUCCESS_MESSAGES = {
   STORY_CREATED: "스토리가 작성되었습니다.",
   STORY_UPDATED: "스토리가 수정되었습니다.",
   STORY_DELETED: "스토리가 삭제되었습니다.",
+
+  // Character
+  CHARACTER_CREATED: "캐릭터가 추가되었습니다.",
+  CHARACTER_UPDATED: "캐릭터가 수정되었습니다.",
+  CHARACTER_DELETED: "캐릭터가 삭제되었습니다.",
 } as const;
 
 // ==========================================
@@ -27,4 +32,9 @@ export const ERROR_MESSAGES = {
   STORY_CREATE_FAILED: "스토리 작성에 실패했습니다.",
   STORY_UPDATE_FAILED: "스토리 수정에 실패했습니다.",
   STORY_DELETE_FAILED: "스토리 삭제에 실패했습니다.",
+
+  // Character
+  CHARACTER_CREATE_FAILED: "캐릭터 추가에 실패했습니다.",
+  CHARACTER_UPDATE_FAILED: "캐릭터 수정에 실패했습니다.",
+  CHARACTER_DELETE_FAILED: "캐릭터 삭제에 실패했습니다.",
 } as const;
