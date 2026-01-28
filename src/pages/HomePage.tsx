@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { ChevronLeft, ChevronRight, Loader2, PlayCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useHeroSlider } from "@/hooks/useHeroSlider";
 import { getImageUrl } from "@/lib/image";
 import { getParticle } from "@/lib/utils";
 import { useCategories } from "@/queries/useCategoriesQueries";
@@ -15,51 +16,13 @@ import { CategorySection } from "./category/CategorySection";
 
 export const HomePage = () => {
   const navigate = useNavigate();
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [activeTab, setActiveTab] = useState<"stories" | "characters">("stories");
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // API 호출
   const { data: heroSlides = [], isLoading: isHeroLoading } = useHeroSlides();
   const { data: categories = [] } = useCategories();
 
-  // 타이머 리셋 함수
-  const resetInterval = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-    if (heroSlides.length > 0) {
-      intervalRef.current = setInterval(() => {
-        setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-      }, 5000);
-    }
-  }, [heroSlides.length]);
+  const [activeTab, setActiveTab] = useState<"stories" | "characters">("stories");
 
-  // 자동 재생 시작 및 cleanup
-  useEffect(() => {
-    resetInterval();
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [resetInterval]);
-
-  // 슬라이드 선택 시 타이머 리셋
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index);
-    resetInterval();
-  };
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-    resetInterval();
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
-    resetInterval();
-  };
+  // 커스텀 훅: 슬라이더 로직
+  const { currentSlide, nextSlide, prevSlide, goToSlide } = useHeroSlider(heroSlides.length);
 
   const handleStartChat = (slide: HeroSlide) => {
     void navigate("/chat", {
@@ -107,7 +70,7 @@ export const HomePage = () => {
                   <div className="absolute inset-0 bg-black/40" />
                   <div className="relative z-10 mx-auto max-w-4xl space-y-4 px-6 text-center">
                     <h1 className="animate-in slide-in-from-bottom-4 text-4xl leading-tight font-extrabold text-white drop-shadow-2xl duration-700 md:text-5xl">
-                      {slide.slide.title}
+                      {slide.slide.marketingTitle}
                     </h1>
                     <p className="animate-in slide-in-from-bottom-6 text-lg whitespace-pre-line text-stone-200 duration-1000 md:text-lg">
                       {slide.slide.description}

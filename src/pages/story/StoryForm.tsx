@@ -1,24 +1,10 @@
-import { useState } from "react";
-
 import { FileText, Loader2, Plus, Users } from "lucide-react";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/messages";
+import { useStoryCharactersLogic } from "@/hooks/useStoryCharactersLogic";
+import { useStoryFormLogic } from "@/hooks/useStoryFormLogic";
 import { CharacterFormCard } from "@/pages/character/CharacterFormCard";
-import {
-  useCreateCharacter,
-  useDeleteCharacter,
-  useUpdateCharacter,
-} from "@/queries/useCharactersQueries";
-import { useStoryCharacters } from "@/queries/useStoriesQueries";
-import type {
-  Character,
-  CreateCharacterRequest,
-  StoryDetail,
-  StoryFormData,
-  UpdateCharacterRequest,
-} from "@/types/story";
+import type { StoryDetail, StoryFormData } from "@/types/story";
 
 interface StoryFormProps {
   initialData?: StoryDetail;
@@ -30,168 +16,46 @@ interface StoryFormProps {
 export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: StoryFormProps) => {
   const storyId = initialData?.id || "";
 
-  const [title, setTitle] = useState(initialData?.title || "");
-  const [authorName, setAuthorName] = useState(initialData?.authorName || "");
-  const [description, setDescription] = useState(initialData?.description || "");
-  const [summary, setSummary] = useState(initialData?.summary || "");
-  const coverColor = initialData?.coverColor || "bg-stone-800";
+  // 1. 폼 상태 로직 분리
+  const {
+    title,
+    setTitle,
+    authorName,
+    setAuthorName,
+    description,
+    setDescription,
+    summary,
+    setSummary,
+    coverColor,
+    isFormValid,
+  } = useStoryFormLogic({ initialData });
 
-  // 생성 모드: 캐릭터 로컬 상태
-  const [characters, setCharacters] = useState<(CreateCharacterRequest & { id: string })[]>([]);
+  // 2. 캐릭터 로직 분리
+  const {
+    characters,
+    existingCharacters,
+    editingCharacterId,
+    editingCharacterData,
+    setEditingCharacterData,
+    isAddingCharacter,
+    newCharacterData,
+    setNewCharacterData,
+    isCreatingCharacter,
+    isUpdatingCharacter,
+    isDeletingCharacter,
+    handleAddCharacter,
+    handleRemoveCharacter,
+    handleCharacterChange,
+    handleStartEditCharacter,
+    handleCancelEditCharacter,
+    handleSaveCharacter,
+    handleDeleteCharacter,
+    handleOpenAddCharacter,
+    handleCancelAddCharacter,
+    handleSaveNewCharacter,
+  } = useStoryCharactersLogic({ storyId, isEditMode, initialCharacters: initialData?.characters });
 
-  // 편집 모드: 캐릭터 목록 조회
-  const { data: charactersData } = useStoryCharacters(storyId, isEditMode);
-  const existingCharacters = charactersData?.characters || initialData?.characters || [];
-
-  // 편집 모드: 캐릭터 CRUD
-  const { mutate: createCharacter, isPending: isCreatingCharacter } = useCreateCharacter(storyId);
-  const { mutate: updateCharacter, isPending: isUpdatingCharacter } = useUpdateCharacter(storyId);
-  const { mutate: deleteCharacter, isPending: isDeletingCharacter } = useDeleteCharacter(storyId);
-
-  // 편집 중인 캐릭터 상태
-  const [editingCharacterId, setEditingCharacterId] = useState<string | null>(null);
-  const [editingCharacterData, setEditingCharacterData] = useState<UpdateCharacterRequest>({});
-
-  // 새 캐릭터 추가 상태 (편집 모드용)
-  const [isAddingCharacter, setIsAddingCharacter] = useState(false);
-  const [newCharacterData, setNewCharacterData] = useState<CreateCharacterRequest>({
-    id: "",
-    name: "",
-    role: "",
-    description: "",
-    firstMessage: "",
-    profileImage: null,
-    backgroundImage: null,
-    backgroundColor: null,
-  });
-
-  // ==========================================
-  // 생성 모드: 캐릭터 핸들러
-  // ==========================================
-
-  const handleAddCharacter = () => {
-    if (characters.length >= 20) return;
-    setCharacters([
-      ...characters,
-      {
-        id: crypto.randomUUID(),
-        name: "",
-        role: "",
-        description: "",
-        firstMessage: "",
-        profileImage: null,
-        backgroundImage: null,
-        backgroundColor: null,
-      },
-    ]);
-  };
-
-  const handleRemoveCharacter = (id: string) => {
-    setCharacters(characters.filter((c) => c.id !== id));
-  };
-
-  const handleCharacterChange = (
-    id: string,
-    field: keyof Omit<CreateCharacterRequest, "id">,
-    value: string,
-  ) => {
-    setCharacters(characters.map((char) => (char.id === id ? { ...char, [field]: value } : char)));
-  };
-
-  // ==========================================
-  // 편집 모드: 캐릭터 수정 핸들러
-  // ==========================================
-
-  const handleStartEditCharacter = (char: Character & { firstMessage?: string | null }) => {
-    setEditingCharacterId(char.id);
-    setEditingCharacterData({
-      name: char.name,
-      role: char.role,
-      description: char.description,
-      firstMessage: char.firstMessage || "",
-      profileImage: char.profileImage,
-      backgroundImage: char.backgroundImage,
-      backgroundColor: char.backgroundColor,
-    });
-  };
-
-  const handleCancelEditCharacter = () => {
-    setEditingCharacterId(null);
-    setEditingCharacterData({});
-  };
-
-  const handleSaveCharacter = (characterId: string) => {
-    updateCharacter(
-      { id: characterId, data: editingCharacterData },
-      {
-        onSuccess: () => {
-          toast.success(SUCCESS_MESSAGES.CHARACTER_UPDATED);
-          setEditingCharacterId(null);
-          setEditingCharacterData({});
-        },
-        onError: () => {
-          toast.error(ERROR_MESSAGES.CHARACTER_UPDATE_FAILED);
-        },
-      },
-    );
-  };
-
-  const handleDeleteCharacter = (characterId: string) => {
-    if (!window.confirm("정말로 이 캐릭터를 삭제하시겠습니까?")) return;
-    deleteCharacter(characterId, {
-      onSuccess: () => {
-        toast.success(SUCCESS_MESSAGES.CHARACTER_DELETED);
-      },
-      onError: () => {
-        toast.error(ERROR_MESSAGES.CHARACTER_DELETE_FAILED);
-      },
-    });
-  };
-
-  // ==========================================
-  // 편집 모드: 캐릭터 추가 핸들러
-  // ==========================================
-
-  const handleOpenAddCharacter = () => {
-    setIsAddingCharacter(true);
-    setNewCharacterData({
-      id: crypto.randomUUID(),
-      name: "",
-      role: "",
-      description: "",
-      firstMessage: "",
-      profileImage: null,
-      backgroundImage: null,
-      backgroundColor: null,
-    });
-  };
-
-  const handleCancelAddCharacter = () => {
-    setIsAddingCharacter(false);
-  };
-
-  const handleSaveNewCharacter = () => {
-    if (!newCharacterData.name || !newCharacterData.role || !newCharacterData.description) {
-      toast.error("이름, 역할, 설명은 필수입니다.");
-      return;
-    }
-    createCharacter(newCharacterData, {
-      onSuccess: () => {
-        toast.success(SUCCESS_MESSAGES.CHARACTER_CREATED);
-        setIsAddingCharacter(false);
-      },
-      onError: () => {
-        toast.error(ERROR_MESSAGES.CHARACTER_CREATE_FAILED);
-      },
-    });
-  };
-
-  // ==========================================
   // 폼 제출
-  // ==========================================
-
-  const isFormValid = title.trim() && authorName.trim() && description.trim() && summary.trim();
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
