@@ -7,6 +7,11 @@ export interface Category {
   name: string;
   slug: string;
   order: number;
+  title: string;
+  emoji: string;
+  description: string;
+  colorClass: string;
+  iconName: string;
 }
 
 // ==========================================
@@ -20,6 +25,9 @@ export interface Character {
   role: string;
   description: string;
   imageColor: string;
+  profileImage?: string;
+  backgroundImage?: string;
+  backgroundColor?: string;
 }
 
 /** 캐릭터 (상세용) */
@@ -27,6 +35,36 @@ export interface CharacterDetail extends Character {
   personality: string | null;
   firstMessage: string | null;
   createdAt?: string;
+}
+
+/** 캐릭터 (스토리 정보 포함) */
+export interface CharacterWithStory {
+  id: string;
+  name: string;
+  role: string;
+  description: string;
+  imageColor: string;
+  profileImage?: string;
+  backgroundImage?: string;
+  backgroundColor?: string;
+  story: {
+    id: string;
+    title: string;
+    authorName: string;
+    coverColor: string;
+    coverImage?: string;
+  };
+}
+
+/** 캐릭터 상세 (스토리 정보 포함) */
+export interface CharacterDetailWithStory extends CharacterDetail {
+  story: {
+    id: string;
+    title: string;
+    authorName: string;
+    coverColor: string;
+    coverImage?: string;
+  };
 }
 
 // ==========================================
@@ -46,6 +84,7 @@ export interface Story {
   authorName: string;
   description: string;
   coverColor: string;
+  coverImage?: string;
   isOfficial: boolean;
   createdAt: string;
   category: Pick<Category, "id" | "name" | "slug">;
@@ -55,7 +94,7 @@ export interface Story {
 /** 스토리 (상세용) */
 export interface StoryDetail extends Story {
   summary: string;
-  characters: Character[];
+  characters: CharacterDetail[];
 }
 
 // ==========================================
@@ -69,6 +108,7 @@ export interface HeroSlide {
     title: string;
     authorName: string;
     coverColor: string;
+    coverImage?: string;
   };
   character: {
     id: string;
@@ -78,7 +118,7 @@ export interface HeroSlide {
   slide: {
     title: string;
     description: string;
-    image: string;
+    image: string | null;
   };
 }
 
@@ -93,13 +133,24 @@ export interface GetStoriesParams {
   limit?: number;
 }
 
+export interface GetCharactersParams {
+  category?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
 export interface CreateCharacterRequest {
+  id?: string;
   name: string;
   role: string;
   description: string;
   personality?: string;
   firstMessage?: string;
   imageColor?: string;
+  profileImage?: string;
+  backgroundImage?: string;
+  backgroundColor?: string;
 }
 
 export interface CreateStoryRequest {
@@ -120,6 +171,18 @@ export interface UpdateStoryRequest {
   coverColor?: string;
 }
 
+export interface UpdateCharacterRequest {
+  name?: string;
+  role?: string;
+  description?: string;
+  personality?: string;
+  firstMessage?: string;
+  imageColor?: string;
+  profileImage?: string;
+  backgroundImage?: string;
+  backgroundColor?: string;
+}
+
 // ==========================================
 // API Response DTOs
 // ==========================================
@@ -136,10 +199,17 @@ export interface StoriesListResponse {
   pagination: Pagination;
 }
 
+/** 스토리별 캐릭터 목록 응답 */
 export interface CharactersListResponse {
   storyId: string;
   storyTitle: string;
   characters: CharacterDetail[];
+}
+
+/** 전체 캐릭터 목록 응답 (스토리 정보 포함) */
+export interface CharactersWithStoryListResponse {
+  characters: CharacterWithStory[];
+  pagination: Pagination;
 }
 
 export interface StoryFormData {

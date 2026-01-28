@@ -4,6 +4,7 @@ import type {
   GetStoriesParams,
   HeroSlide,
   StoriesListResponse,
+  Story,
   StoryDetail,
   UpdateStoryRequest,
 } from "@/types/story";
@@ -41,12 +42,12 @@ export const getStoryCharacters = async (storyId: string): Promise<CharactersLis
   const response = await apiClient.get<CharactersListResponse>(`/stories/${storyId}/characters`);
   return response.data;
 };
-
 /**
  * 내가 작성한 스토리 목록 조회
+ * 백엔드는 Story[] 배열을 직접 반환함
  */
-export const getMyStories = async (): Promise<StoriesListResponse> => {
-  const response = await apiClient.get<StoriesListResponse>("/stories/me");
+export const getMyStories = async (): Promise<Story[]> => {
+  const response = await apiClient.get<Story[]>("/stories/me");
   return response.data;
 };
 
