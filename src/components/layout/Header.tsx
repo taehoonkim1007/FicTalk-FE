@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
-import { Loader2, LogIn, LogOut, MessageSquare, Search, X } from "lucide-react";
+import { BookOpen, Loader2, LogIn, LogOut, MessageSquare, Search, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
@@ -15,8 +15,18 @@ export const Header = () => {
   const { isAuthenticated } = useAuthStore();
   const { logout, isLoggingOut } = useLogout();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: categories = [] } = useCategories();
+
+  const handleSearch = (e: FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      void navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery("");
+      setIsSearchOpen(false);
+    }
+  };
 
   // 현재 경로에서 활성 카테고리 추출
   const currentSlug = location.pathname.slice(1) || "home";
@@ -34,19 +44,25 @@ export const Header = () => {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         {/* Mobile Search Overlay */}
         {isSearchOpen ? (
-          <div className="flex w-full items-center gap-2 md:hidden">
+          <form onSubmit={handleSearch} className="flex w-full items-center gap-2 md:hidden">
             <Search className="h-4 w-4 text-stone-500" />
             <input
               type="text"
               autoFocus
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="작품, 캐릭터 검색"
               className="flex-1 bg-transparent py-2 text-sm text-white outline-none placeholder:text-stone-500"
-              onBlur={() => setIsSearchOpen(false)}
             />
-            <Button size="icon" variant="ghost" onClick={() => setIsSearchOpen(false)}>
+            <Button
+              size="icon"
+              variant="ghost"
+              type="button"
+              onClick={() => setIsSearchOpen(false)}
+            >
               <X className="h-5 w-5 text-stone-400" />
             </Button>
-          </div>
+          </form>
         ) : null}
 
         {/* Default Header Content */}
@@ -63,24 +79,37 @@ export const Header = () => {
 
           <div className="flex items-center gap-3">
             {isAuthenticated && (
-              <Button
-                size="sm"
-                variant="ghost"
-                className="mr-2 text-stone-400 hover:text-emerald-400"
-              >
-                <MessageSquare className="h-4 w-4 md:mr-1.5" />
-                <span className="hidden md:inline">내 대화</span>
-              </Button>
+              <>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-stone-400 hover:text-blue-400"
+                  onClick={() => void navigate("/my-stories")}
+                >
+                  <BookOpen className="h-4 w-4 md:mr-1.5" />
+                  <span className="hidden md:inline">내 스토리</span>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="mr-2 text-stone-400 hover:text-emerald-400"
+                >
+                  <MessageSquare className="h-4 w-4 md:mr-1.5" />
+                  <span className="hidden md:inline">내 대화</span>
+                </Button>
+              </>
             )}
 
-            <div className="relative hidden md:flex">
+            <form onSubmit={handleSearch} className="relative hidden md:flex">
               <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-stone-500" />
               <input
                 type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="작품, 캐릭터 검색"
                 className="w-64 rounded-full border-none bg-stone-800 py-2 pr-4 pl-9 text-sm text-white transition-all outline-none focus:ring-1 focus:ring-emerald-500"
               />
-            </div>
+            </form>
             <Button
               size="icon"
               variant="ghost"
