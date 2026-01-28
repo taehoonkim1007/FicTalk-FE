@@ -33,12 +33,14 @@ export const storiesKeys = {
 
 /**
  * 히어로 슬라이드 목록 조회
+ * server-cache: Balanced cache for hero content (refreshes periodically, not on every mount)
  */
 export const useHeroSlides = () => {
   return useQuery({
     queryKey: storiesKeys.heroSlides(),
     queryFn: getHeroSlides,
-    staleTime: 0,
+    staleTime: 1000 * 60 * 5, // 5분 (홈페이지 재방문 시 캐시 사용)
+    gcTime: 1000 * 60 * 30, // 30분 캐시 유지
   });
 };
 

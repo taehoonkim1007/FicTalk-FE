@@ -1,3 +1,4 @@
+import { memo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { ChevronRight, Loader2 } from "lucide-react";
@@ -13,13 +14,17 @@ interface CategoryCharacterSectionProps {
   category: Category;
 }
 
-export const CategoryCharacterSection = ({ category }: CategoryCharacterSectionProps) => {
+export const CategoryCharacterSection = memo(({ category }: CategoryCharacterSectionProps) => {
   const navigate = useNavigate();
   const { data, isLoading } = useCharacters({ category: category.slug, limit: 4 });
 
-  const handleCharacterSelect = (character: CharacterWithStory) => {
-    void navigate(`/characters/${character.id}`);
-  };
+  // rerender-functional-setstate: useCallback for stable reference
+  const handleCharacterSelect = useCallback(
+    (character: CharacterWithStory) => {
+      void navigate(`/characters/${character.id}`);
+    },
+    [navigate],
+  );
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-12">
@@ -123,4 +128,6 @@ export const CategoryCharacterSection = ({ category }: CategoryCharacterSectionP
       )}
     </section>
   );
-};
+});
+
+CategoryCharacterSection.displayName = "CategoryCharacterSection";

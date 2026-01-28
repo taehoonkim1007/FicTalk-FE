@@ -118,6 +118,7 @@ export const MyStoriesPage = () => {
                     <img
                       src={getImageUrl(story.coverImage) || ""}
                       alt={story.title}
+                      loading="lazy"
                       className="h-full w-full object-cover"
                     />
                   )}

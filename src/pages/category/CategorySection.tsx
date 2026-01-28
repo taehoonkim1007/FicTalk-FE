@@ -1,3 +1,4 @@
+import { memo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { ChevronRight, Loader2 } from "lucide-react";
@@ -12,13 +13,17 @@ interface CategorySectionProps {
   category: Category;
 }
 
-export const CategorySection = ({ category }: CategorySectionProps) => {
+export const CategorySection = memo(({ category }: CategorySectionProps) => {
   const navigate = useNavigate();
   const { data, isLoading } = useStories({ category: category.slug, limit: 4 });
 
-  const handleStorySelect = (story: Story) => {
-    void navigate(`/stories/${story.id}`);
-  };
+  // rerender-functional-setstate: useCallback for stable reference
+  const handleStorySelect = useCallback(
+    (story: Story) => {
+      void navigate(`/stories/${story.id}`);
+    },
+    [navigate],
+  );
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-12">
@@ -49,7 +54,7 @@ export const CategorySection = ({ category }: CategorySectionProps) => {
           {data.stories.map((story) => (
             <div
               key={story.id}
-              className="group relative h-64 w-full cursor-pointer overflow-hidden rounded-xl bg-stone-900 transition-all hover:ring-2 hover:ring-emerald-500"
+              className="group relative aspect-[2/3] w-full cursor-pointer overflow-hidden rounded-xl bg-stone-900 transition-all hover:ring-2 hover:ring-emerald-500"
               onClick={() => handleStorySelect(story)}
             >
               {/* 배경 이미지 (Zoom 효과) */}
@@ -98,4 +103,6 @@ export const CategorySection = ({ category }: CategorySectionProps) => {
       )}
     </section>
   );
-};
+});
+
+CategorySection.displayName = "CategorySection";

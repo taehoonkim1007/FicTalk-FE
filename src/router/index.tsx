@@ -1,17 +1,53 @@
+import { Suspense, lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
 
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { AuthCallbackPage } from "@/pages/AuthCallbackPage";
+// Critical path - eagerly loaded
 import { HomePage } from "@/pages/HomePage";
-import { LoginPage } from "@/pages/LoginPage";
-import { SearchPage } from "@/pages/SearchPage";
-import { CharacterDetailPage } from "@/pages/character/CharacterDetailPage";
-import { CharactersPage } from "@/pages/character/CharactersPage";
-import { MyStoriesPage } from "@/pages/story/MyStoriesPage";
-import { StoriesPage } from "@/pages/story/StoriesPage";
-import { StoryDetailPage } from "@/pages/story/StoryDetailPage";
-import { StoryFormPage } from "@/pages/story/StoryFormPage";
+
+// Lazy loaded routes (bundle-dynamic-imports)
+const SearchPage = lazy(() =>
+  import("@/pages/SearchPage").then((m) => ({ default: m.SearchPage })),
+);
+const StoriesPage = lazy(() =>
+  import("@/pages/story/StoriesPage").then((m) => ({ default: m.StoriesPage })),
+);
+const StoryDetailPage = lazy(() =>
+  import("@/pages/story/StoryDetailPage").then((m) => ({ default: m.StoryDetailPage })),
+);
+const StoryFormPage = lazy(() =>
+  import("@/pages/story/StoryFormPage").then((m) => ({ default: m.StoryFormPage })),
+);
+const MyStoriesPage = lazy(() =>
+  import("@/pages/story/MyStoriesPage").then((m) => ({ default: m.MyStoriesPage })),
+);
+const CharactersPage = lazy(() =>
+  import("@/pages/character/CharactersPage").then((m) => ({ default: m.CharactersPage })),
+);
+const CharacterDetailPage = lazy(() =>
+  import("@/pages/character/CharacterDetailPage").then((m) => ({
+    default: m.CharacterDetailPage,
+  })),
+);
+const LoginPage = lazy(() => import("@/pages/LoginPage").then((m) => ({ default: m.LoginPage })));
+const AuthCallbackPage = lazy(() =>
+  import("@/pages/AuthCallbackPage").then((m) => ({ default: m.AuthCallbackPage })),
+);
+
+// Suspense fallback component
+const PageLoader = () => (
+  <div className="flex h-screen items-center justify-center">
+    <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+  </div>
+);
+
+// HOC for lazy routes
+const withSuspense = (Component: React.LazyExoticComponent<React.ComponentType>) => (
+  <Suspense fallback={<PageLoader />}>
+    <Component />
+  </Suspense>
+);
 
 export const router = createBrowserRouter([
   {
@@ -24,32 +60,32 @@ export const router = createBrowserRouter([
       },
       {
         path: "search",
-        element: <SearchPage />,
+        element: withSuspense(SearchPage),
       },
       {
         path: "stories/:storyId",
-        element: <StoryDetailPage />,
+        element: withSuspense(StoryDetailPage),
       },
       {
         element: <ProtectedRoute />,
         children: [
           {
             path: "my-stories",
-            element: <MyStoriesPage />,
+            element: withSuspense(MyStoriesPage),
           },
         ],
       },
       {
         path: "characters/:characterId",
-        element: <CharacterDetailPage />,
+        element: withSuspense(CharacterDetailPage),
       },
       {
         path: ":categorySlug/characters",
-        element: <CharactersPage />,
+        element: withSuspense(CharactersPage),
       },
       {
         path: ":categorySlug",
-        element: <StoriesPage />,
+        element: withSuspense(StoriesPage),
       },
     ],
   },
@@ -59,20 +95,20 @@ export const router = createBrowserRouter([
     children: [
       {
         path: "/stories/new",
-        element: <StoryFormPage />,
+        element: withSuspense(StoryFormPage),
       },
       {
         path: "/stories/:storyId/edit",
-        element: <StoryFormPage />,
+        element: withSuspense(StoryFormPage),
       },
     ],
   },
   {
     path: "/login",
-    element: <LoginPage />,
+    element: withSuspense(LoginPage),
   },
   {
     path: "/auth/callback",
-    element: <AuthCallbackPage />,
+    element: withSuspense(AuthCallbackPage),
   },
 ]);

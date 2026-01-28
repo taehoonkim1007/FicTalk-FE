@@ -98,7 +98,7 @@ export const SearchPage = () => {
                   {stories.map((story) => (
                     <div
                       key={story.id}
-                      className="group relative h-64 w-full cursor-pointer overflow-hidden rounded-xl bg-stone-900 transition-all hover:ring-2 hover:ring-emerald-500"
+                      className="group relative aspect-[2/3] w-full cursor-pointer overflow-hidden rounded-xl bg-stone-900 transition-all hover:ring-2 hover:ring-emerald-500"
                       onClick={() => handleStorySelect(story)}
                     >
                       {/* 배경 이미지 */}

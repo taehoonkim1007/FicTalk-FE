@@ -135,6 +135,7 @@ export const CharacterDetailPage = () => {
                   <img
                     src={getImageUrl(character.story.coverImage) || ""}
                     alt={character.story.title}
+                    loading="lazy"
                     className="h-full w-full object-cover"
                   />
                 ) : (
