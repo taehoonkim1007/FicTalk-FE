@@ -60,6 +60,9 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
     role: "",
     description: "",
     firstMessage: "",
+    profileImage: null,
+    backgroundImage: null,
+    backgroundColor: null,
   });
 
   // ==========================================
@@ -76,6 +79,9 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
         role: "",
         description: "",
         firstMessage: "",
+        profileImage: null,
+        backgroundImage: null,
+        backgroundColor: null,
       },
     ]);
   };
@@ -103,6 +109,9 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
       role: char.role,
       description: char.description,
       firstMessage: char.firstMessage || "",
+      profileImage: char.profileImage,
+      backgroundImage: char.backgroundImage,
+      backgroundColor: char.backgroundColor,
     });
   };
 
@@ -151,6 +160,9 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
       role: "",
       description: "",
       firstMessage: "",
+      profileImage: null,
+      backgroundImage: null,
+      backgroundColor: null,
     });
   };
 
@@ -320,9 +332,9 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
                       role={editingCharacterData.role || ""}
                       description={editingCharacterData.description || ""}
                       firstMessage={editingCharacterData.firstMessage || ""}
-                      profileImage={editingCharacterData.profileImage}
-                      backgroundImage={editingCharacterData.backgroundImage}
-                      backgroundColor={editingCharacterData.backgroundColor}
+                      profileImage={editingCharacterData.profileImage ?? null}
+                      backgroundImage={editingCharacterData.backgroundImage ?? null}
+                      backgroundColor={editingCharacterData.backgroundColor ?? null}
                       onNameChange={(v) =>
                         setEditingCharacterData({ ...editingCharacterData, name: v })
                       }
@@ -362,7 +374,7 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
                     name={char.name}
                     role={char.role}
                     description={char.description}
-                    firstMessage={char.firstMessage}
+                    firstMessage={char.firstMessage ?? null}
                     profileImage={char.profileImage}
                     backgroundImage={char.backgroundImage}
                     backgroundColor={char.backgroundColor}

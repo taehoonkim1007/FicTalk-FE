@@ -7,10 +7,10 @@ export interface CharacterFormCardProps {
   name: string;
   role: string;
   description: string;
-  firstMessage?: string;
-  profileImage?: string;
-  backgroundImage?: string;
-  backgroundColor?: string;
+  firstMessage: string | null;
+  profileImage: string | null;
+  backgroundImage: string | null;
+  backgroundColor: string | null;
   isEditing?: boolean;
   onNameChange?: (value: string) => void;
   onRoleChange?: (value: string) => void;

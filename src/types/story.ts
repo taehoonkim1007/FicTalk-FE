@@ -25,9 +25,9 @@ export interface Character {
   role: string;
   description: string;
   imageColor: string;
-  profileImage?: string;
-  backgroundImage?: string;
-  backgroundColor?: string;
+  profileImage: string | null;
+  backgroundImage: string | null;
+  backgroundColor: string | null;
 }
 
 /** 캐릭터 (상세용) */
@@ -44,15 +44,15 @@ export interface CharacterWithStory {
   role: string;
   description: string;
   imageColor: string;
-  profileImage?: string;
-  backgroundImage?: string;
-  backgroundColor?: string;
+  profileImage: string | null;
+  backgroundImage: string | null;
+  backgroundColor: string | null;
   story: {
     id: string;
     title: string;
     authorName: string;
     coverColor: string;
-    coverImage?: string;
+    coverImage: string | null;
   };
 }
 
@@ -63,7 +63,7 @@ export interface CharacterDetailWithStory extends CharacterDetail {
     title: string;
     authorName: string;
     coverColor: string;
-    coverImage?: string;
+    coverImage: string | null;
   };
 }
 
@@ -84,7 +84,7 @@ export interface Story {
   authorName: string;
   description: string;
   coverColor: string;
-  coverImage?: string;
+  coverImage: string | null;
   isOfficial: boolean;
   createdAt: string;
   category: Pick<Category, "id" | "name" | "slug">;
@@ -108,7 +108,7 @@ export interface HeroSlide {
     title: string;
     authorName: string;
     coverColor: string;
-    coverImage?: string;
+    coverImage: string | null;
   };
   character: {
     id: string;
@@ -116,6 +116,7 @@ export interface HeroSlide {
     firstMessage: string | null;
   };
   slide: {
+    marketingTitle: string;
     title: string;
     description: string;
     image: string | null;
@@ -148,9 +149,9 @@ export interface CreateCharacterRequest {
   personality?: string;
   firstMessage?: string;
   imageColor?: string;
-  profileImage?: string;
-  backgroundImage?: string;
-  backgroundColor?: string;
+  profileImage: string | null;
+  backgroundImage: string | null;
+  backgroundColor: string | null;
 }
 
 export interface CreateStoryRequest {
@@ -178,9 +179,9 @@ export interface UpdateCharacterRequest {
   personality?: string;
   firstMessage?: string;
   imageColor?: string;
-  profileImage?: string;
-  backgroundImage?: string;
-  backgroundColor?: string;
+  profileImage?: string | null;
+  backgroundImage?: string | null;
+  backgroundColor?: string | null;
 }
 
 // ==========================================

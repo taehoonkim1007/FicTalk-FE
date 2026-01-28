@@ -2,7 +2,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  picture?: string;
+  picture: string | null;
 }
 
 export interface Character {
@@ -10,7 +10,7 @@ export interface Character {
   name: string;
   role: string;
   desc: string;
-  image?: string; // Optional image class or url
+  image: string | null;
 }
 
 export interface Story {
@@ -19,16 +19,15 @@ export interface Story {
   author: string;
   tags: string[];
   color: string;
-  desc?: string; // Short description
-  summary?: string; // Long description for detail page
-  character?: string; // Main character (legacy)
-  characters?: Character[]; // List of characters
+  desc: string | null;
+  summary: string | null; // Long description for detail page
+  characters?: Character[];
 }
 
 export interface HeroSlide {
   id: number;
-  title: string; // Marketing Headline
-  storyTitle: string; // Actual Book Title
+  marketingTitle: string; // Marketing Headline
+  title: string; // Actual Book Title
   desc: string;
   image: string;
   tag: string;
@@ -48,9 +47,9 @@ export interface ChatContext {
   id?: number | string;
   title: string;
   character: string;
-  firstMessage?: string;
-  color?: string;
-  desc?: string;
+  firstMessage: string | null;
+  color: string | null;
+  desc: string | null;
 }
 
 export interface ChatMessage {
