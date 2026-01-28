@@ -4,30 +4,24 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Loader2, PlayCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { CATEGORY_CONFIG } from "@/constants/categories";
+import { getImageUrl } from "@/lib/image";
 import { getParticle } from "@/lib/utils";
-import { useHeroSlides, useStories } from "@/queries/useStoriesQueries";
-import type { HeroSlide, Story } from "@/types/story";
+import { useCategories } from "@/queries/useCategoriesQueries";
+import { useHeroSlides } from "@/queries/useStoriesQueries";
+import type { HeroSlide } from "@/types/story";
+
+import { CategoryCharacterSection } from "./category/CategoryCharacterSection";
+import { CategorySection } from "./category/CategorySection";
 
 export const HomePage = () => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [activeTab, setActiveTab] = useState<"stories" | "characters">("stories");
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // API 호출
   const { data: heroSlides = [], isLoading: isHeroLoading } = useHeroSlides();
-  const { data: worldLitData, isLoading: isWorldLitLoading } = useStories({
-    category: "world-lit",
-    limit: 4,
-  });
-  const { data: koreanLitData, isLoading: isKoreanLitLoading } = useStories({
-    category: "korean-lit",
-    limit: 4,
-  });
-  const { data: creativeData, isLoading: isCreativeLoading } = useStories({
-    category: "creative",
-    limit: 4,
-  });
+  const { data: categories = [] } = useCategories();
 
   // 타이머 리셋 함수
   const resetInterval = useCallback(() => {
@@ -67,10 +61,6 @@ export const HomePage = () => {
     resetInterval();
   };
 
-  const handleStorySelect = (story: Story) => {
-    void navigate(`/stories/${story.id}`);
-  };
-
   const handleStartChat = (slide: HeroSlide) => {
     void navigate("/chat", {
       state: {
@@ -82,27 +72,6 @@ export const HomePage = () => {
       },
     });
   };
-
-  const sections = [
-    {
-      title: `${CATEGORY_CONFIG["world-lit"].emoji} ${CATEGORY_CONFIG["world-lit"].title}`,
-      slug: "world-lit",
-      data: worldLitData,
-      isLoading: isWorldLitLoading,
-    },
-    {
-      title: `${CATEGORY_CONFIG["korean-lit"].emoji} ${CATEGORY_CONFIG["korean-lit"].title}`,
-      slug: "korean-lit",
-      data: koreanLitData,
-      isLoading: isKoreanLitLoading,
-    },
-    {
-      title: `${CATEGORY_CONFIG["creative"].emoji} ${CATEGORY_CONFIG["creative"].title}`,
-      slug: "creative",
-      data: creativeData,
-      isLoading: isCreativeLoading,
-    },
-  ];
 
   return (
     <main className="pb-20">
@@ -124,8 +93,17 @@ export const HomePage = () => {
                   key={`${slide.story.id}-${slide.character.id}`}
                   className={`absolute inset-0 flex items-center justify-center transition-opacity duration-1000 ${
                     index === currentSlide ? "z-10 opacity-100" : "z-0 opacity-0"
-                  } ${slide.slide.image || slide.story.coverColor}`}
+                  } ${!slide.slide.image && !slide.story.coverImage ? slide.story.coverColor : ""}`}
                 >
+                  {(slide.slide.image || slide.story.coverImage) && (
+                    <img
+                      src={
+                        getImageUrl(slide.slide.image) || getImageUrl(slide.story.coverImage) || ""
+                      }
+                      alt={slide.story.title}
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                  )}
                   <div className="absolute inset-0 bg-black/40" />
                   <div className="relative z-10 mx-auto max-w-4xl space-y-4 px-6 text-center">
                     <h1 className="animate-in slide-in-from-bottom-4 text-4xl leading-tight font-extrabold text-white drop-shadow-2xl duration-700 md:text-5xl">
@@ -184,65 +162,40 @@ export const HomePage = () => {
         </div>
       </section>
 
-      {/* Category Sections */}
-      {sections.map((section) => (
-        <section key={section.slug} className="mx-auto max-w-7xl px-4 py-12">
-          <div className="mb-6 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-xl font-bold text-white md:text-2xl">
-              {section.title}
-            </h2>
-            <Button
-              variant="link"
-              size="sm"
-              className="text-stone-400"
-              onClick={() => void navigate(`/${section.slug}`)}
-            >
-              전체보기 <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+      {/* 탭 네비게이션 */}
+      <div className="mx-auto mt-8 max-w-7xl px-4">
+        <div className="flex gap-2">
+          <Button
+            variant={activeTab === "stories" ? "secondary" : "ghost"}
+            onClick={() => setActiveTab("stories")}
+            className={
+              activeTab === "stories"
+                ? "bg-emerald-600 text-white hover:bg-emerald-500"
+                : "text-stone-400 hover:text-white"
+            }
+          >
+            스토리
+          </Button>
+          <Button
+            variant={activeTab === "characters" ? "secondary" : "ghost"}
+            onClick={() => setActiveTab("characters")}
+            className={
+              activeTab === "characters"
+                ? "bg-emerald-600 text-white hover:bg-emerald-500"
+                : "text-stone-400 hover:text-white"
+            }
+          >
+            캐릭터
+          </Button>
+        </div>
+      </div>
 
-          {section.isLoading ? (
-            <div className="flex h-48 items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
-            </div>
-          ) : !section.data?.stories.length ? (
-            <div className="flex h-48 items-center justify-center">
-              <p className="text-stone-500">등록된 스토리가 없습니다</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-4">
-              {section.data.stories.map((story) => (
-                <div
-                  key={story.id}
-                  className="group cursor-pointer overflow-hidden rounded-xl bg-stone-900 transition-all hover:ring-2 hover:ring-emerald-500"
-                  onClick={() => handleStorySelect(story)}
-                >
-                  <div className={`relative h-40 overflow-hidden md:h-48 ${story.coverColor}`}>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 transition-opacity group-hover:opacity-40" />
-                    <div className="absolute right-3 bottom-3 left-3">
-                      <h3 className="truncate text-lg leading-tight font-bold text-white">
-                        {story.title}
-                      </h3>
-                      <p className="mt-1 truncate text-xs text-stone-300">{story.authorName}</p>
-                    </div>
-                  </div>
-                  <div className="space-y-3 p-4">
-                    <p className="line-clamp-2 text-sm text-stone-400">{story.description}</p>
-                    <div className="flex items-center justify-between border-t border-stone-800 pt-2 text-xs text-stone-500">
-                      <span className="rounded bg-stone-800 px-2 py-0.5">
-                        {story.category.name}
-                      </span>
-                      <span className="flex items-center gap-1 font-medium transition-colors hover:text-emerald-500">
-                        상세보기 <ChevronRight className="h-3 w-3" />
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-      ))}
+      {/* Category Sections - 동적 렌더링 */}
+      {activeTab === "stories"
+        ? categories.map((category) => <CategorySection key={category.slug} category={category} />)
+        : categories.map((category) => (
+            <CategoryCharacterSection key={category.slug} category={category} />
+          ))}
     </main>
   );
 };
