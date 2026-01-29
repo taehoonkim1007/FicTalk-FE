@@ -258,3 +258,19 @@ export interface GeneratedCharacter {
 export interface GenerateCharactersResponse {
   characters: GeneratedCharacter[];
 }
+
+/** 프로필 이미지 생성 요청 */
+export interface GenerateProfileImageRequest {
+  name: string;
+  role: string;
+  description: string;
+  personality: string;
+}
+
+/** 프로필 이미지 생성 응답 */
+export interface GenerateProfileImageResponse {
+  /** AI가 생성한 이미지 (base64 인코딩, PNG 포맷) */
+  imageBase64: string;
+  /** 이미지 생성에 사용된 프롬프트 (디버깅용) */
+  promptUsed: string;
+}

@@ -3,6 +3,8 @@ import type {
   CreateStoryRequest,
   GenerateCharactersRequest,
   GenerateCharactersResponse,
+  GenerateProfileImageRequest,
+  GenerateProfileImageResponse,
   GenerateSummaryRequest,
   GenerateSummaryResponse,
   GetStoriesParams,
@@ -102,6 +104,20 @@ export const generateCharacters = async (
   const response = await apiClient.post<GenerateCharactersResponse>(
     "/stories/generate/characters",
     data,
+  );
+  return response.data;
+};
+
+/**
+ * AI 프로필 이미지 생성
+ */
+export const generateProfileImage = async (
+  data: GenerateProfileImageRequest,
+): Promise<GenerateProfileImageResponse> => {
+  const response = await apiClient.post<GenerateProfileImageResponse>(
+    "/stories/generate/profile-image",
+    data,
+    { timeout: 180000 }, // 이미지 생성은 오래 걸림 (180초)
   );
   return response.data;
 };

@@ -4,6 +4,7 @@ import {
   createStory,
   deleteStory,
   generateCharacters,
+  generateProfileImage,
   generateSummary,
   getHeroSlides,
   getMyStories,
@@ -163,5 +164,14 @@ export const useGenerateSummary = () => {
 export const useGenerateCharacters = () => {
   return useMutation({
     mutationFn: generateCharacters,
+  });
+};
+
+/**
+ * AI 프로필 이미지 생성
+ */
+export const useGenerateProfileImage = () => {
+  return useMutation({
+    mutationFn: generateProfileImage,
   });
 };

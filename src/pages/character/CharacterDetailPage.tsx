@@ -81,7 +81,7 @@ export const CharacterDetailPage = () => {
         {/* 캐릭터 프로필 */}
         <div className="-mt-16 flex flex-col items-center text-center">
           {/* 아바타 */}
-          <Avatar className="h-32 w-32 ring-4 ring-stone-950">
+          <Avatar className="h-[12rem] w-[12rem] ring-4 ring-stone-950">
             {character.profileImage && (
               <AvatarImage src={getImageUrl(character.profileImage) || ""} alt={character.name} />
             )}

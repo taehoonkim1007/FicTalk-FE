@@ -117,7 +117,7 @@ export const CharactersPage = () => {
                 {/* 2. 컨텐츠 */}
                 <div className="absolute inset-0 flex flex-col justify-between p-4">
                   <div className="flex items-start gap-4">
-                    <Avatar className="h-16 w-16 shrink-0 border-2 border-stone-800/50">
+                    <Avatar className="h-20 w-20 shrink-0 border-2 border-stone-800/50">
                       {character.profileImage && (
                         <AvatarImage
                           src={getImageUrl(character.profileImage) || ""}

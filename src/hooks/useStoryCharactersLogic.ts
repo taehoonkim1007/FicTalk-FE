@@ -67,6 +67,15 @@ export const useStoryCharactersLogic = ({
     backgroundColor: null,
   });
 
+  // 이미지 생성 모달 상태
+  const [imageModalCharacter, setImageModalCharacter] = useState<{
+    id: string;
+    name: string;
+    role: string;
+    description: string;
+    personality: string;
+  } | null>(null);
+
   // ==========================================
   // 핸들러: 로컬 상태 (생성 모드)
   // ==========================================
@@ -209,6 +218,60 @@ export const useStoryCharactersLogic = ({
   };
 
   // ==========================================
+  // 핸들러: 이미지 생성 모달
+  // ==========================================
+  const handleOpenImageModal = (char: {
+    id: string;
+    name: string;
+    role: string;
+    description: string;
+    personality?: string | null;
+  }) => {
+    setImageModalCharacter({
+      id: char.id,
+      name: char.name,
+      role: char.role,
+      description: char.description,
+      personality: char.personality || "",
+    });
+  };
+
+  const handleCloseImageModal = () => {
+    setImageModalCharacter(null);
+  };
+
+  const handleConfirmImage = (imageBase64: string) => {
+    if (!imageModalCharacter) return;
+
+    const profileImageDataUrl = `data:image/png;base64,${imageBase64}`;
+
+    if (isEditMode) {
+      // 편집 모드: 서버에 저장
+      updateCharacter(
+        { id: imageModalCharacter.id, data: { profileImage: profileImageDataUrl } },
+        {
+          onSuccess: () => {
+            toast.success("프로필 이미지가 저장되었습니다.");
+            setImageModalCharacter(null);
+          },
+          onError: () => {
+            toast.error("프로필 이미지 저장에 실패했습니다.");
+          },
+        },
+      );
+    } else {
+      // 생성 모드: 로컬 상태 업데이트
+      setCharacters(
+        characters.map((c) =>
+          c.id === imageModalCharacter.id ? { ...c, profileImage: profileImageDataUrl } : c,
+        ),
+      );
+      setImageModalCharacter(null);
+      toast.success("프로필 이미지가 적용되었습니다.");
+    }
+  };
+
+  // ==========================================
   // 핸들러: AI 캐릭터 생성
   // ==========================================
   const handleGenerateCharacters = () => {
@@ -260,6 +323,7 @@ export const useStoryCharactersLogic = ({
     isUpdatingCharacter,
     isDeletingCharacter,
     isGeneratingCharacters,
+    imageModalCharacter,
 
     // 핸들러
     handleAddCharacter,
@@ -273,5 +337,8 @@ export const useStoryCharactersLogic = ({
     handleCancelAddCharacter,
     handleSaveNewCharacter,
     handleGenerateCharacters,
+    handleOpenImageModal,
+    handleCloseImageModal,
+    handleConfirmImage,
   };
 };

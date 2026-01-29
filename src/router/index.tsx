@@ -1,7 +1,8 @@
-import { Suspense, lazy } from "react";
+import { lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
 
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { withSuspense } from "@/components/common/RouteSuspense";
 import { MainLayout } from "@/components/layout/MainLayout";
 // Critical path - eagerly loaded
 import { HomePage } from "@/pages/HomePage";
@@ -33,20 +34,6 @@ const CharacterDetailPage = lazy(() =>
 const LoginPage = lazy(() => import("@/pages/LoginPage").then((m) => ({ default: m.LoginPage })));
 const AuthCallbackPage = lazy(() =>
   import("@/pages/AuthCallbackPage").then((m) => ({ default: m.AuthCallbackPage })),
-);
-
-// Suspense fallback component
-const PageLoader = () => (
-  <div className="flex h-screen items-center justify-center">
-    <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
-  </div>
-);
-
-// HOC for lazy routes
-const withSuspense = (Component: React.LazyExoticComponent<React.ComponentType>) => (
-  <Suspense fallback={<PageLoader />}>
-    <Component />
-  </Suspense>
 );
 
 export const router = createBrowserRouter([

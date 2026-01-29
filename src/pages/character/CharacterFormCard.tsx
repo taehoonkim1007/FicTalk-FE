@@ -1,4 +1,4 @@
-import { Check, Loader2, Pencil, Trash2, X } from "lucide-react";
+import { Check, ImagePlus, Loader2, Pencil, Trash2, X } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getImageUrl } from "@/lib/image";
@@ -22,6 +22,7 @@ export interface CharacterFormCardProps {
   onDelete?: () => void;
   onSave?: () => void;
   onCancel?: () => void;
+  onGenerateImage?: () => void;
   isSaving?: boolean;
   isDeleting?: boolean;
 }
@@ -45,6 +46,7 @@ export const CharacterFormCard = ({
   onDelete,
   onSave,
   onCancel,
+  onGenerateImage,
   isSaving,
   isDeleting,
 }: CharacterFormCardProps) => {
@@ -53,15 +55,27 @@ export const CharacterFormCard = ({
       <div className="rounded-lg border border-stone-700 bg-stone-900 p-4">
         <div className="flex gap-3">
           {/* 아바타 placeholder/preview */}
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-stone-700">
-            {profileImage ? (
-              <img
-                src={getImageUrl(profileImage) || ""}
-                alt="profile"
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <span className="text-lg text-stone-400">?</span>
+          <div className="relative">
+            <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full bg-stone-700">
+              {profileImage ? (
+                <img
+                  src={getImageUrl(profileImage) || ""}
+                  alt="profile"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="text-lg text-stone-400">?</span>
+              )}
+            </div>
+            {onGenerateImage && (
+              <button
+                type="button"
+                onClick={onGenerateImage}
+                className="absolute -right-1 -bottom-1 rounded-full bg-emerald-600 p-1.5 text-white hover:bg-emerald-500"
+                title="AI 이미지 생성"
+              >
+                <ImagePlus className="h-4 w-4" />
+              </button>
             )}
           </div>
 
@@ -173,7 +187,7 @@ export const CharacterFormCard = ({
       <div className="absolute inset-0 flex items-center p-4">
         <div className="flex items-center gap-4">
           {/* 아바타 (심플 스타일 유지) */}
-          <Avatar className="h-16 w-16 shrink-0 border-2 border-stone-800/50">
+          <Avatar className="h-24 w-24 shrink-0 border-2 border-stone-800/50">
             <AvatarImage
               src={getImageUrl(profileImage) || ""}
               alt={name}
@@ -201,6 +215,14 @@ export const CharacterFormCard = ({
 
       {/* 3. 액션 버튼 (우측 상단, 배경 이미지 유무에 따라 색상 조정) */}
       <div className="absolute top-3 right-3 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+        {onGenerateImage && (
+          <button
+            onClick={onGenerateImage}
+            className="rounded bg-black/20 p-1.5 text-stone-400 backdrop-blur-sm hover:bg-stone-800 hover:text-emerald-400"
+          >
+            <ImagePlus className="h-4 w-4" />
+          </button>
+        )}
         <button
           onClick={onEdit}
           className="rounded bg-black/20 p-1.5 text-stone-400 backdrop-blur-sm hover:bg-stone-800 hover:text-yellow-400"

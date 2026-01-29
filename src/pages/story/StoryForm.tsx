@@ -1,9 +1,13 @@
-import { FileText, Loader2, Plus, Sparkles, Users } from "lucide-react";
+import { useState } from "react";
+
+import { FileText, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Tabs } from "@/components/ui/tabs";
 import { useStoryCharactersLogic } from "@/hooks/useStoryCharactersLogic";
 import { useStoryFormLogic } from "@/hooks/useStoryFormLogic";
-import { CharacterFormCard } from "@/pages/character/CharacterFormCard";
+import { CharactersSection } from "@/pages/story/CharactersSection";
+import { StoryInfoSection } from "@/pages/story/StoryInfoSection";
 import type { StoryDetail, StoryFormData } from "@/types/story";
 
 interface StoryFormProps {
@@ -15,6 +19,9 @@ interface StoryFormProps {
 
 export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: StoryFormProps) => {
   const storyId = initialData?.id || "";
+
+  // 탭 상태
+  const [activeTab, setActiveTab] = useState<string>("story");
 
   // 1. 폼 상태 로직 분리
   const {
@@ -46,6 +53,7 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
     isUpdatingCharacter,
     isDeletingCharacter,
     isGeneratingCharacters,
+    imageModalCharacter,
     handleAddCharacter,
     handleRemoveCharacter,
     handleCharacterChange,
@@ -57,6 +65,9 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
     handleCancelAddCharacter,
     handleSaveNewCharacter,
     handleGenerateCharacters,
+    handleOpenImageModal,
+    handleCloseImageModal,
+    handleConfirmImage,
   } = useStoryCharactersLogic({
     storyId,
     isEditMode,
@@ -77,240 +88,68 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
     });
   };
 
-  // 캐릭터 목록 (생성 모드 or 편집 모드)
-  const displayCharacters = isEditMode ? existingCharacters : characters;
+  // AI 캐릭터 생성 가능 여부
+  const canGenerateCharacters = !!(title.trim() && description.trim() && summary.trim());
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 pb-24">
-      {/* 제목 */}
-      <div>
-        <label className="mb-2 block text-sm text-stone-400">제목 *</label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          maxLength={200}
-          required
-          className="w-full rounded-lg border-0 bg-stone-900 px-4 py-3.5 text-white placeholder-stone-500 ring-1 ring-stone-800 outline-none focus:ring-emerald-500"
-          placeholder="작품의 제목을 입력하세요"
+    <form onSubmit={handleSubmit} className="pb-24">
+      {/* 탭 네비게이션 */}
+      <Tabs
+        tabs={[
+          { id: "story", label: "1. 스토리 작성" },
+          { id: "characters", label: "2. 캐릭터 설정" },
+        ]}
+        activeTab={activeTab}
+        onChange={setActiveTab}
+      />
+
+      {/* 탭 내용 */}
+      {activeTab === "story" ? (
+        <StoryInfoSection
+          title={title}
+          setTitle={setTitle}
+          authorName={authorName}
+          setAuthorName={setAuthorName}
+          description={description}
+          setDescription={setDescription}
+          summary={summary}
+          setSummary={setSummary}
+          isGeneratingSummary={isGeneratingSummary}
+          handleGenerateSummary={handleGenerateSummary}
         />
-      </div>
-
-      {/* 저자명 */}
-      <div>
-        <label className="mb-2 block text-sm text-stone-400">저자명 *</label>
-        <input
-          type="text"
-          value={authorName}
-          onChange={(e) => setAuthorName(e.target.value)}
-          maxLength={100}
-          required
-          className="w-full rounded-lg border-0 bg-stone-900 px-4 py-3.5 text-white placeholder-stone-500 ring-1 ring-stone-800 outline-none focus:ring-emerald-500"
-          placeholder="필명을 입력하세요"
+      ) : (
+        <CharactersSection
+          isEditMode={isEditMode}
+          characters={characters}
+          existingCharacters={existingCharacters}
+          editingCharacterId={editingCharacterId}
+          editingCharacterData={editingCharacterData}
+          setEditingCharacterData={setEditingCharacterData}
+          isAddingCharacter={isAddingCharacter}
+          newCharacterData={newCharacterData}
+          setNewCharacterData={setNewCharacterData}
+          isCreatingCharacter={isCreatingCharacter}
+          isUpdatingCharacter={isUpdatingCharacter}
+          isDeletingCharacter={isDeletingCharacter}
+          isGeneratingCharacters={isGeneratingCharacters}
+          canGenerateCharacters={canGenerateCharacters}
+          imageModalCharacter={imageModalCharacter}
+          handleAddCharacter={handleAddCharacter}
+          handleRemoveCharacter={handleRemoveCharacter}
+          handleCharacterChange={handleCharacterChange}
+          handleStartEditCharacter={handleStartEditCharacter}
+          handleCancelEditCharacter={handleCancelEditCharacter}
+          handleSaveCharacter={handleSaveCharacter}
+          handleDeleteCharacter={handleDeleteCharacter}
+          handleOpenAddCharacter={handleOpenAddCharacter}
+          handleCancelAddCharacter={handleCancelAddCharacter}
+          handleSaveNewCharacter={handleSaveNewCharacter}
+          handleGenerateCharacters={handleGenerateCharacters}
+          handleOpenImageModal={handleOpenImageModal}
+          handleCloseImageModal={handleCloseImageModal}
+          handleConfirmImage={handleConfirmImage}
         />
-      </div>
-
-      {/* 한줄 소개 */}
-      <div>
-        <label className="mb-2 block text-sm text-stone-400">한줄 소개 *</label>
-        <input
-          type="text"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          maxLength={300}
-          required
-          className="w-full rounded-lg border-0 bg-stone-900 px-4 py-3.5 text-white placeholder-stone-500 ring-1 ring-stone-800 outline-none focus:ring-emerald-500"
-          placeholder="작품을 한 문장으로 표현해주세요"
-        />
-      </div>
-
-      {/* 줄거리 */}
-      <div>
-        <div className="mb-2 flex items-center justify-between">
-          <label className="text-sm text-stone-400">줄거리 *</label>
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleGenerateSummary}
-              disabled={isGeneratingSummary || !title.trim() || !description.trim()}
-              className="border-emerald-700 bg-transparent text-emerald-400 hover:bg-emerald-900/50 hover:text-emerald-300"
-            >
-              {isGeneratingSummary ? (
-                <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-              ) : (
-                <Sparkles className="mr-1 h-4 w-4" />
-              )}
-              AI 생성
-            </Button>
-            <span className="text-sm text-stone-500">{summary.length} / 4000</span>
-          </div>
-        </div>
-        <textarea
-          value={summary}
-          onChange={(e) => setSummary(e.target.value)}
-          maxLength={4000}
-          required
-          rows={8}
-          className="w-full resize-none rounded-lg border-0 bg-stone-900 px-4 py-3.5 text-white placeholder-stone-500 ring-1 ring-stone-800 outline-none focus:ring-emerald-500"
-          placeholder="작품의 전체적인 줄거리를 입력해주세요. (최대 4000자)"
-        />
-      </div>
-
-      {/* 등장인물 섹션 */}
-      <div className="border-t border-stone-800 pt-6">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-stone-400">
-            <Users className="h-4 w-4" />
-            <span className="text-sm font-medium">등장인물</span>
-          </div>
-          <div className="flex items-center gap-2">
-            {/* AI 생성 버튼 (생성 모드에서만) */}
-            {!isEditMode && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleGenerateCharacters}
-                disabled={
-                  isGeneratingCharacters || !title.trim() || !description.trim() || !summary.trim()
-                }
-                className="border-emerald-700 bg-transparent text-emerald-400 hover:bg-emerald-900/50 hover:text-emerald-300"
-              >
-                {isGeneratingCharacters ? (
-                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="mr-1 h-4 w-4" />
-                )}
-                AI 생성
-              </Button>
-            )}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={isEditMode ? handleOpenAddCharacter : handleAddCharacter}
-              disabled={isEditMode ? isAddingCharacter : characters.length >= 20}
-              className="border-stone-700 bg-transparent text-stone-300 hover:bg-stone-800 hover:text-white"
-            >
-              <Plus className="mr-1 h-4 w-4" /> 인물 추가
-            </Button>
-          </div>
-        </div>
-
-        {/* 새 캐릭터 추가 폼 (편집 모드) */}
-        {isEditMode && isAddingCharacter && (
-          <CharacterFormCard
-            isEditing
-            name={newCharacterData.name || ""}
-            role={newCharacterData.role || ""}
-            description={newCharacterData.description || ""}
-            personality={newCharacterData.personality || ""}
-            firstMessage={newCharacterData.firstMessage || ""}
-            profileImage={newCharacterData.profileImage}
-            backgroundImage={newCharacterData.backgroundImage}
-            backgroundColor={newCharacterData.backgroundColor}
-            onNameChange={(v) => setNewCharacterData({ ...newCharacterData, name: v })}
-            onRoleChange={(v) => setNewCharacterData({ ...newCharacterData, role: v })}
-            onDescriptionChange={(v) =>
-              setNewCharacterData({ ...newCharacterData, description: v })
-            }
-            onPersonalityChange={(v) =>
-              setNewCharacterData({ ...newCharacterData, personality: v })
-            }
-            onFirstMessageChange={(v) =>
-              setNewCharacterData({ ...newCharacterData, firstMessage: v })
-            }
-            onSave={handleSaveNewCharacter}
-            onCancel={handleCancelAddCharacter}
-            isSaving={isCreatingCharacter}
-          />
-        )}
-
-        {/* 캐릭터 목록 */}
-        {displayCharacters.length === 0 && !isAddingCharacter ? (
-          <div className="rounded-lg border border-dashed border-stone-700 py-8 text-center">
-            <p className="text-sm text-stone-500">등록된 캐릭터가 없습니다.</p>
-            <p className="mt-1 text-xs text-stone-600">
-              인물 추가 버튼을 눌러 캐릭터를 추가하세요.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {isEditMode
-              ? existingCharacters.map((char) =>
-                  editingCharacterId === char.id ? (
-                    <CharacterFormCard
-                      key={char.id}
-                      isEditing
-                      name={editingCharacterData.name || ""}
-                      role={editingCharacterData.role || ""}
-                      description={editingCharacterData.description || ""}
-                      personality={editingCharacterData.personality || ""}
-                      firstMessage={editingCharacterData.firstMessage || ""}
-                      profileImage={editingCharacterData.profileImage ?? null}
-                      backgroundImage={editingCharacterData.backgroundImage ?? null}
-                      backgroundColor={editingCharacterData.backgroundColor ?? null}
-                      onNameChange={(v) =>
-                        setEditingCharacterData({ ...editingCharacterData, name: v })
-                      }
-                      onRoleChange={(v) =>
-                        setEditingCharacterData({ ...editingCharacterData, role: v })
-                      }
-                      onDescriptionChange={(v) =>
-                        setEditingCharacterData({ ...editingCharacterData, description: v })
-                      }
-                      onPersonalityChange={(v) =>
-                        setEditingCharacterData({ ...editingCharacterData, personality: v })
-                      }
-                      onFirstMessageChange={(v) =>
-                        setEditingCharacterData({ ...editingCharacterData, firstMessage: v })
-                      }
-                      onSave={() => handleSaveCharacter(char.id)}
-                      onCancel={handleCancelEditCharacter}
-                      isSaving={isUpdatingCharacter}
-                    />
-                  ) : (
-                    <CharacterFormCard
-                      key={char.id}
-                      name={char.name}
-                      role={char.role}
-                      description={char.description}
-                      personality={char.personality || ""}
-                      firstMessage={char.firstMessage || ""}
-                      profileImage={char.profileImage}
-                      backgroundImage={char.backgroundImage}
-                      backgroundColor={char.backgroundColor}
-                      onEdit={() => handleStartEditCharacter(char)}
-                      onDelete={() => handleDeleteCharacter(char.id)}
-                      isDeleting={isDeletingCharacter}
-                    />
-                  ),
-                )
-              : characters.map((char) => (
-                  <CharacterFormCard
-                    key={char.id}
-                    isEditing
-                    name={char.name}
-                    role={char.role}
-                    description={char.description}
-                    personality={char.personality ?? null}
-                    firstMessage={char.firstMessage ?? null}
-                    profileImage={char.profileImage}
-                    backgroundImage={char.backgroundImage}
-                    backgroundColor={char.backgroundColor}
-                    onNameChange={(v) => handleCharacterChange(char.id, "name", v)}
-                    onRoleChange={(v) => handleCharacterChange(char.id, "role", v)}
-                    onDescriptionChange={(v) => handleCharacterChange(char.id, "description", v)}
-                    onPersonalityChange={(v) => handleCharacterChange(char.id, "personality", v)}
-                    onFirstMessageChange={(v) => handleCharacterChange(char.id, "firstMessage", v)}
-                    onDelete={() => handleRemoveCharacter(char.id)}
-                  />
-                ))}
-          </div>
-        )}
-      </div>
+      )}
 
       {/* 게시하기 버튼 (하단 고정) */}
       <div className="fixed right-0 bottom-0 left-0 border-t border-stone-800 bg-stone-950 p-4">
