@@ -1,9 +1,20 @@
-import { type MouseEvent } from "react";
+import { type MouseEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { ChevronRight, Loader2, PenSquare, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
+import { EmptyState, ErrorState, LoadingState } from "@/components/common";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/messages";
 import { getImageUrl } from "@/lib/image";
@@ -16,7 +27,11 @@ export const MyStoriesPage = () => {
   const { isAuthenticated } = useAuthStore();
 
   const { data: stories = [], isLoading, isError } = useMyStories(isAuthenticated);
-  const { mutate: deleteStory } = useDeleteStory();
+  const { mutate: deleteStory, isPending: isDeleting } = useDeleteStory();
+
+  // 삭제 확인 다이얼로그 상태
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [storyToDelete, setStoryToDelete] = useState<string | null>(null);
 
   const handleStorySelect = (story: Story) => {
     void navigate(`/stories/${story.id}`, {
@@ -29,13 +44,20 @@ export const MyStoriesPage = () => {
     void navigate(`/stories/${storyId}/edit`);
   };
 
-  const handleDeleteStory = (e: MouseEvent, storyId: string) => {
+  const handleDeleteClick = (e: MouseEvent, storyId: string) => {
     e.stopPropagation();
-    if (!window.confirm("정말로 이 스토리를 삭제하시겠습니까?")) return;
+    setStoryToDelete(storyId);
+    setDeleteDialogOpen(true);
+  };
 
-    deleteStory(storyId, {
+  const handleConfirmDelete = () => {
+    if (!storyToDelete) return;
+
+    deleteStory(storyToDelete, {
       onSuccess: () => {
         toast.success(SUCCESS_MESSAGES.STORY_DELETED);
+        setDeleteDialogOpen(false);
+        setStoryToDelete(null);
       },
       onError: () => {
         toast.error(ERROR_MESSAGES.STORY_DELETE_FAILED);
@@ -45,27 +67,20 @@ export const MyStoriesPage = () => {
 
   if (!isAuthenticated) {
     return (
-      <main className="flex min-h-[50vh] flex-col items-center justify-center gap-4">
-        <p className="text-stone-400">로그인이 필요합니다.</p>
-        <Button onClick={() => void navigate("/login")}>로그인하기</Button>
-      </main>
+      <EmptyState
+        title="로그인이 필요합니다."
+        action={<Button onClick={() => void navigate("/login")}>로그인하기</Button>}
+        className="min-h-[50vh]"
+      />
     );
   }
 
   if (isLoading) {
-    return (
-      <main className="flex min-h-[50vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
-      </main>
-    );
+    return <LoadingState />;
   }
 
   if (isError) {
-    return (
-      <main className="flex min-h-[50vh] flex-col items-center justify-center">
-        <p className="text-red-400">스토리를 불러오는 중 오류가 발생했습니다.</p>
-      </main>
-    );
+    return <ErrorState message="스토리를 불러오는 중 오류가 발생했습니다." />;
   }
 
   return (
@@ -89,20 +104,23 @@ export const MyStoriesPage = () => {
         </div>
 
         {stories.length === 0 ? (
-          <div className="flex h-48 flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-stone-700 bg-stone-900/50">
-            <p className="text-stone-500">아직 작성한 스토리가 없습니다</p>
-            <Button
-              variant="ghost"
-              className="text-emerald-500"
-              onClick={() =>
-                void navigate("/stories/new", {
-                  state: { from: "/my-stories" },
-                })
-              }
-            >
-              <Plus className="mr-2 h-4 w-4" /> 첫 스토리 작성하기
-            </Button>
-          </div>
+          <EmptyState
+            title="아직 작성한 스토리가 없습니다"
+            variant="dashed"
+            action={
+              <Button
+                variant="ghost"
+                className="text-emerald-500"
+                onClick={() =>
+                  void navigate("/stories/new", {
+                    state: { from: "/my-stories" },
+                  })
+                }
+              >
+                <Plus className="mr-2 h-4 w-4" /> 첫 스토리 작성하기
+              </Button>
+            }
+          />
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-3">
             {stories.map((story) => (
@@ -140,7 +158,7 @@ export const MyStoriesPage = () => {
                       <PenSquare className="h-4 w-4" />
                     </button>
                     <button
-                      onClick={(e) => handleDeleteStory(e, story.id)}
+                      onClick={(e) => handleDeleteClick(e, story.id)}
                       className="rounded-full bg-stone-900/80 p-2 text-stone-300 transition-colors hover:bg-red-900 hover:text-red-400"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -161,6 +179,25 @@ export const MyStoriesPage = () => {
           </div>
         )}
       </section>
+
+      {/* 삭제 확인 다이얼로그 */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>스토리 삭제</AlertDialogTitle>
+            <AlertDialogDescription>
+              정말로 이 스토리를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} disabled={isDeleting}>
+              {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              삭제
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 };

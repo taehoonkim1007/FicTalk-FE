@@ -3,7 +3,7 @@ import { useState } from "react";
 import { FileText, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Tabs } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStoryCharactersLogic } from "@/hooks/useStoryCharactersLogic";
 import { useStoryFormLogic } from "@/hooks/useStoryFormLogic";
 import { CharactersSection } from "@/pages/story/CharactersSection";
@@ -21,7 +21,7 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
   const storyId = initialData?.id || "";
 
   // 탭 상태
-  const [activeTab, setActiveTab] = useState<string>("story");
+  const [activeTab, setActiveTab] = useState("story");
 
   // 1. 폼 상태 로직 분리
   const {
@@ -54,6 +54,7 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
     isDeletingCharacter,
     isGeneratingCharacters,
     imageModalCharacter,
+    characterToDelete,
     handleAddCharacter,
     handleRemoveCharacter,
     handleCharacterChange,
@@ -61,6 +62,8 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
     handleCancelEditCharacter,
     handleSaveCharacter,
     handleDeleteCharacter,
+    handleConfirmDeleteCharacter,
+    handleCancelDeleteCharacter,
     handleOpenAddCharacter,
     handleCancelAddCharacter,
     handleSaveNewCharacter,
@@ -94,62 +97,65 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
   return (
     <form onSubmit={handleSubmit} className="pb-24">
       {/* 탭 네비게이션 */}
-      <Tabs
-        tabs={[
-          { id: "story", label: "1. 스토리 작성" },
-          { id: "characters", label: "2. 캐릭터 설정" },
-        ]}
-        activeTab={activeTab}
-        onChange={setActiveTab}
-      />
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="story">1. 스토리 작성</TabsTrigger>
+          <TabsTrigger value="characters">2. 캐릭터 설정</TabsTrigger>
+        </TabsList>
 
-      {/* 탭 내용 */}
-      {activeTab === "story" ? (
-        <StoryInfoSection
-          title={title}
-          setTitle={setTitle}
-          authorName={authorName}
-          setAuthorName={setAuthorName}
-          description={description}
-          setDescription={setDescription}
-          summary={summary}
-          setSummary={setSummary}
-          isGeneratingSummary={isGeneratingSummary}
-          handleGenerateSummary={handleGenerateSummary}
-        />
-      ) : (
-        <CharactersSection
-          isEditMode={isEditMode}
-          characters={characters}
-          existingCharacters={existingCharacters}
-          editingCharacterId={editingCharacterId}
-          editingCharacterData={editingCharacterData}
-          setEditingCharacterData={setEditingCharacterData}
-          isAddingCharacter={isAddingCharacter}
-          newCharacterData={newCharacterData}
-          setNewCharacterData={setNewCharacterData}
-          isCreatingCharacter={isCreatingCharacter}
-          isUpdatingCharacter={isUpdatingCharacter}
-          isDeletingCharacter={isDeletingCharacter}
-          isGeneratingCharacters={isGeneratingCharacters}
-          canGenerateCharacters={canGenerateCharacters}
-          imageModalCharacter={imageModalCharacter}
-          handleAddCharacter={handleAddCharacter}
-          handleRemoveCharacter={handleRemoveCharacter}
-          handleCharacterChange={handleCharacterChange}
-          handleStartEditCharacter={handleStartEditCharacter}
-          handleCancelEditCharacter={handleCancelEditCharacter}
-          handleSaveCharacter={handleSaveCharacter}
-          handleDeleteCharacter={handleDeleteCharacter}
-          handleOpenAddCharacter={handleOpenAddCharacter}
-          handleCancelAddCharacter={handleCancelAddCharacter}
-          handleSaveNewCharacter={handleSaveNewCharacter}
-          handleGenerateCharacters={handleGenerateCharacters}
-          handleOpenImageModal={handleOpenImageModal}
-          handleCloseImageModal={handleCloseImageModal}
-          handleConfirmImage={handleConfirmImage}
-        />
-      )}
+        {/* 탭 내용 */}
+        <TabsContent value="story">
+          <StoryInfoSection
+            title={title}
+            setTitle={setTitle}
+            authorName={authorName}
+            setAuthorName={setAuthorName}
+            description={description}
+            setDescription={setDescription}
+            summary={summary}
+            setSummary={setSummary}
+            isGeneratingSummary={isGeneratingSummary}
+            handleGenerateSummary={handleGenerateSummary}
+          />
+        </TabsContent>
+
+        <TabsContent value="characters">
+          <CharactersSection
+            isEditMode={isEditMode}
+            characters={characters}
+            existingCharacters={existingCharacters}
+            editingCharacterId={editingCharacterId}
+            editingCharacterData={editingCharacterData}
+            setEditingCharacterData={setEditingCharacterData}
+            isAddingCharacter={isAddingCharacter}
+            newCharacterData={newCharacterData}
+            setNewCharacterData={setNewCharacterData}
+            isCreatingCharacter={isCreatingCharacter}
+            isUpdatingCharacter={isUpdatingCharacter}
+            isDeletingCharacter={isDeletingCharacter}
+            isGeneratingCharacters={isGeneratingCharacters}
+            canGenerateCharacters={canGenerateCharacters}
+            imageModalCharacter={imageModalCharacter}
+            characterToDelete={characterToDelete}
+            handleAddCharacter={handleAddCharacter}
+            handleRemoveCharacter={handleRemoveCharacter}
+            handleCharacterChange={handleCharacterChange}
+            handleStartEditCharacter={handleStartEditCharacter}
+            handleCancelEditCharacter={handleCancelEditCharacter}
+            handleSaveCharacter={handleSaveCharacter}
+            handleDeleteCharacter={handleDeleteCharacter}
+            handleConfirmDeleteCharacter={handleConfirmDeleteCharacter}
+            handleCancelDeleteCharacter={handleCancelDeleteCharacter}
+            handleOpenAddCharacter={handleOpenAddCharacter}
+            handleCancelAddCharacter={handleCancelAddCharacter}
+            handleSaveNewCharacter={handleSaveNewCharacter}
+            handleGenerateCharacters={handleGenerateCharacters}
+            handleOpenImageModal={handleOpenImageModal}
+            handleCloseImageModal={handleCloseImageModal}
+            handleConfirmImage={handleConfirmImage}
+          />
+        </TabsContent>
+      </Tabs>
 
       {/* 게시하기 버튼 (하단 고정) */}
       <div className="fixed right-0 bottom-0 left-0 border-t border-stone-800 bg-stone-950 p-4">

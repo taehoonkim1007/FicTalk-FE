@@ -1,6 +1,17 @@
 import { Loader2, Plus, Sparkles, Users } from "lucide-react";
 
-import { CharacterImageModal } from "@/components/character/CharacterImageModal";
+import { CharacterImageModal } from "@/components/character";
+import { EmptyState } from "@/components/common";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { CharacterFormCard } from "@/pages/character/CharacterFormCard";
 import type {
@@ -31,6 +42,7 @@ interface CharactersSectionProps {
     description: string;
     personality: string;
   } | null;
+  characterToDelete: string | null;
   handleAddCharacter: () => void;
   handleRemoveCharacter: (id: string) => void;
   handleCharacterChange: (
@@ -42,6 +54,8 @@ interface CharactersSectionProps {
   handleCancelEditCharacter: () => void;
   handleSaveCharacter: (id: string) => void;
   handleDeleteCharacter: (id: string) => void;
+  handleConfirmDeleteCharacter: () => void;
+  handleCancelDeleteCharacter: () => void;
   handleOpenAddCharacter: () => void;
   handleCancelAddCharacter: () => void;
   handleSaveNewCharacter: () => void;
@@ -73,6 +87,7 @@ export const CharactersSection = ({
   isGeneratingCharacters,
   canGenerateCharacters,
   imageModalCharacter,
+  characterToDelete,
   handleAddCharacter,
   handleRemoveCharacter,
   handleCharacterChange,
@@ -80,6 +95,8 @@ export const CharactersSection = ({
   handleCancelEditCharacter,
   handleSaveCharacter,
   handleDeleteCharacter,
+  handleConfirmDeleteCharacter,
+  handleCancelDeleteCharacter,
   handleOpenAddCharacter,
   handleCancelAddCharacter,
   handleSaveNewCharacter,
@@ -156,10 +173,12 @@ export const CharactersSection = ({
 
       {/* 캐릭터 목록 */}
       {displayCharacters.length === 0 && !isAddingCharacter ? (
-        <div className="rounded-lg border border-dashed border-stone-700 py-8 text-center">
-          <p className="text-sm text-stone-500">등록된 캐릭터가 없습니다.</p>
-          <p className="mt-1 text-xs text-stone-600">인물 추가 버튼을 눌러 캐릭터를 추가하세요.</p>
-        </div>
+        <EmptyState
+          title="등록된 캐릭터가 없습니다."
+          description="인물 추가 버튼을 눌러 캐릭터를 추가하세요."
+          variant="dashed"
+          className="py-8"
+        />
       ) : (
         <div className="space-y-3">
           {isEditMode
@@ -246,6 +265,22 @@ export const CharactersSection = ({
           onConfirm={handleConfirmImage}
         />
       )}
+
+      {/* 캐릭터 삭제 확인 다이얼로그 */}
+      <AlertDialog open={!!characterToDelete} onOpenChange={handleCancelDeleteCharacter}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>캐릭터 삭제</AlertDialogTitle>
+            <AlertDialogDescription>
+              정말로 이 캐릭터를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelDeleteCharacter}>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDeleteCharacter}>삭제</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

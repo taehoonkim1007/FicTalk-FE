@@ -11,6 +11,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useGenerateProfileImage } from "@/queries/useStoriesQueries";
 
 interface CharacterImageModalProps {
@@ -149,30 +152,37 @@ export const CharacterImageModal = ({
           {/* 캐릭터 정보 입력 필드 */}
           <div className="space-y-3">
             <div>
-              <label className="mb-1 block text-sm font-medium text-stone-300">이름</label>
-              <input
-                type="text"
+              <Label htmlFor="char-name" className="mb-1 font-medium text-stone-300">
+                이름
+              </Label>
+              <Input
+                id="char-name"
                 value={editedCharacter.name}
                 onChange={(e) => setEditedCharacter({ ...editedCharacter, name: e.target.value })}
                 placeholder="캐릭터 이름"
                 maxLength={100}
-                className="w-full rounded-lg border-0 bg-stone-800 px-3 py-2 text-sm text-white placeholder-stone-500 ring-1 ring-stone-700 outline-none focus:ring-emerald-500"
+                className="h-auto bg-stone-800 px-3 py-2 text-sm ring-stone-700"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-stone-300">역할</label>
-              <input
-                type="text"
+              <Label htmlFor="char-role" className="mb-1 font-medium text-stone-300">
+                역할
+              </Label>
+              <Input
+                id="char-role"
                 value={editedCharacter.role}
                 onChange={(e) => setEditedCharacter({ ...editedCharacter, role: e.target.value })}
                 placeholder="주인공 또는 조연"
                 maxLength={50}
-                className="w-full rounded-lg border-0 bg-stone-800 px-3 py-2 text-sm text-white placeholder-stone-500 ring-1 ring-stone-700 outline-none focus:ring-emerald-500"
+                className="h-auto bg-stone-800 px-3 py-2 text-sm ring-stone-700"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-stone-300">설명</label>
-              <textarea
+              <Label htmlFor="char-description" className="mb-1 font-medium text-stone-300">
+                설명
+              </Label>
+              <Textarea
+                id="char-description"
                 value={editedCharacter.description}
                 onChange={(e) =>
                   setEditedCharacter({ ...editedCharacter, description: e.target.value })
@@ -180,12 +190,15 @@ export const CharacterImageModal = ({
                 placeholder="캐릭터에 대한 설명"
                 maxLength={1000}
                 rows={3}
-                className="w-full resize-none rounded-lg border-0 bg-stone-800 px-3 py-2 text-sm text-white placeholder-stone-500 ring-1 ring-stone-700 outline-none focus:ring-emerald-500"
+                className="min-h-0 bg-stone-800 px-3 py-2 text-sm ring-stone-700"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-stone-300">성격</label>
-              <textarea
+              <Label htmlFor="char-personality" className="mb-1 font-medium text-stone-300">
+                성격
+              </Label>
+              <Textarea
+                id="char-personality"
                 value={editedCharacter.personality}
                 onChange={(e) =>
                   setEditedCharacter({ ...editedCharacter, personality: e.target.value })
@@ -193,7 +206,7 @@ export const CharacterImageModal = ({
                 placeholder="캐릭터의 성격 특성"
                 maxLength={500}
                 rows={2}
-                className="w-full resize-none rounded-lg border-0 bg-stone-800 px-3 py-2 text-sm text-white placeholder-stone-500 ring-1 ring-stone-700 outline-none focus:ring-emerald-500"
+                className="min-h-0 bg-stone-800 px-3 py-2 text-sm ring-stone-700"
               />
             </div>
           </div>

@@ -1,8 +1,20 @@
+import { useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { ArrowLeft, BookOpen, Loader2, MessageCircle, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
+import { ErrorState, LoadingState } from "@/components/common";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/messages";
@@ -46,6 +58,9 @@ export const StoryDetailPage = () => {
     }
   };
 
+  // 삭제 확인 다이얼로그 상태
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
   const handleEdit = () => {
     const from = (location.state as { from?: string } | null)?.from;
     void navigate(`/stories/${storyId}/edit`, {
@@ -53,13 +68,17 @@ export const StoryDetailPage = () => {
     });
   };
 
-  const handleDelete = () => {
+  const handleDeleteClick = () => {
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
     if (!storyId) return;
-    if (!window.confirm("정말로 이 스토리를 삭제하시겠습니까?")) return;
 
     deleteStory(storyId, {
       onSuccess: () => {
         toast.success(SUCCESS_MESSAGES.STORY_DELETED);
+        setDeleteDialogOpen(false);
         const from = (location.state as { from?: string } | null)?.from;
         if (from) {
           void navigate(from);
@@ -74,21 +93,19 @@ export const StoryDetailPage = () => {
   };
 
   if (isLoading) {
-    return (
-      <main className="flex min-h-[50vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
-      </main>
-    );
+    return <LoadingState />;
   }
 
   if (isError || !story) {
     return (
-      <main className="flex min-h-[50vh] flex-col items-center justify-center gap-4">
-        <p className="text-red-400">스토리를 찾을 수 없습니다.</p>
-        <Button variant="ghost" onClick={() => void navigate(-1)}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> 돌아가기
-        </Button>
-      </main>
+      <ErrorState
+        message="스토리를 찾을 수 없습니다."
+        action={
+          <Button variant="ghost" onClick={() => void navigate(-1)}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> 돌아가기
+          </Button>
+        }
+      />
     );
   }
 
@@ -163,7 +180,7 @@ export const StoryDetailPage = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={handleDelete}
+                  onClick={handleDeleteClick}
                   disabled={isDeleting}
                   className="text-stone-300 hover:bg-white/10 hover:text-red-400"
                 >
@@ -267,6 +284,25 @@ export const StoryDetailPage = () => {
           </div>
         </div>
       </div>
+
+      {/* 삭제 확인 다이얼로그 */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>스토리 삭제</AlertDialogTitle>
+            <AlertDialogDescription>
+              정말로 이 스토리를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} disabled={isDeleting}>
+              {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              삭제
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 };
