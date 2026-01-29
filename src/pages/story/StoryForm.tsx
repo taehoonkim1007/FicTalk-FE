@@ -1,4 +1,4 @@
-import { FileText, Loader2, Plus, Users } from "lucide-react";
+import { FileText, Loader2, Plus, Sparkles, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useStoryCharactersLogic } from "@/hooks/useStoryCharactersLogic";
@@ -7,7 +7,7 @@ import { CharacterFormCard } from "@/pages/character/CharacterFormCard";
 import type { StoryDetail, StoryFormData } from "@/types/story";
 
 interface StoryFormProps {
-  initialData?: StoryDetail;
+  initialData: StoryDetail | null;
   onSubmit: (data: StoryFormData) => void;
   isSubmitting: boolean;
   isEditMode: boolean;
@@ -28,6 +28,8 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
     setSummary,
     coverColor,
     isFormValid,
+    isGeneratingSummary,
+    handleGenerateSummary,
   } = useStoryFormLogic({ initialData });
 
   // 2. 캐릭터 로직 분리
@@ -43,6 +45,7 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
     isCreatingCharacter,
     isUpdatingCharacter,
     isDeletingCharacter,
+    isGeneratingCharacters,
     handleAddCharacter,
     handleRemoveCharacter,
     handleCharacterChange,
@@ -53,7 +56,13 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
     handleOpenAddCharacter,
     handleCancelAddCharacter,
     handleSaveNewCharacter,
-  } = useStoryCharactersLogic({ storyId, isEditMode, initialCharacters: initialData?.characters });
+    handleGenerateCharacters,
+  } = useStoryCharactersLogic({
+    storyId,
+    isEditMode,
+    initialCharacters: initialData?.characters ?? [],
+    formState: { title, description, summary },
+  });
 
   // 폼 제출
   const handleSubmit = (e: React.FormEvent) => {
@@ -87,39 +96,56 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
         />
       </div>
 
-      {/* 저자명 & 한줄 소개 */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label className="mb-2 block text-sm text-stone-400">저자명 *</label>
-          <input
-            type="text"
-            value={authorName}
-            onChange={(e) => setAuthorName(e.target.value)}
-            maxLength={100}
-            required
-            className="w-full rounded-lg border-0 bg-stone-900 px-4 py-3.5 text-white placeholder-stone-500 ring-1 ring-stone-800 outline-none focus:ring-emerald-500"
-            placeholder="필명을 입력하세요"
-          />
-        </div>
-        <div>
-          <label className="mb-2 block text-sm text-stone-400">한줄 소개 *</label>
-          <input
-            type="text"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            maxLength={300}
-            required
-            className="w-full rounded-lg border-0 bg-stone-900 px-4 py-3.5 text-white placeholder-stone-500 ring-1 ring-stone-800 outline-none focus:ring-emerald-500"
-            placeholder="작품을 한 문장으로 표현해주세요"
-          />
-        </div>
+      {/* 저자명 */}
+      <div>
+        <label className="mb-2 block text-sm text-stone-400">저자명 *</label>
+        <input
+          type="text"
+          value={authorName}
+          onChange={(e) => setAuthorName(e.target.value)}
+          maxLength={100}
+          required
+          className="w-full rounded-lg border-0 bg-stone-900 px-4 py-3.5 text-white placeholder-stone-500 ring-1 ring-stone-800 outline-none focus:ring-emerald-500"
+          placeholder="필명을 입력하세요"
+        />
+      </div>
+
+      {/* 한줄 소개 */}
+      <div>
+        <label className="mb-2 block text-sm text-stone-400">한줄 소개 *</label>
+        <input
+          type="text"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          maxLength={300}
+          required
+          className="w-full rounded-lg border-0 bg-stone-900 px-4 py-3.5 text-white placeholder-stone-500 ring-1 ring-stone-800 outline-none focus:ring-emerald-500"
+          placeholder="작품을 한 문장으로 표현해주세요"
+        />
       </div>
 
       {/* 줄거리 */}
       <div>
         <div className="mb-2 flex items-center justify-between">
           <label className="text-sm text-stone-400">줄거리 *</label>
-          <span className="text-sm text-stone-500">{summary.length} / 4000</span>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleGenerateSummary}
+              disabled={isGeneratingSummary || !title.trim() || !description.trim()}
+              className="border-emerald-700 bg-transparent text-emerald-400 hover:bg-emerald-900/50 hover:text-emerald-300"
+            >
+              {isGeneratingSummary ? (
+                <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="mr-1 h-4 w-4" />
+              )}
+              AI 생성
+            </Button>
+            <span className="text-sm text-stone-500">{summary.length} / 4000</span>
+          </div>
         </div>
         <textarea
           value={summary}
@@ -139,16 +165,38 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
             <Users className="h-4 w-4" />
             <span className="text-sm font-medium">등장인물</span>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={isEditMode ? handleOpenAddCharacter : handleAddCharacter}
-            disabled={isEditMode ? isAddingCharacter : characters.length >= 20}
-            className="border-stone-700 bg-transparent text-stone-300 hover:bg-stone-800 hover:text-white"
-          >
-            <Plus className="mr-1 h-4 w-4" /> 인물 추가
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* AI 생성 버튼 (생성 모드에서만) */}
+            {!isEditMode && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleGenerateCharacters}
+                disabled={
+                  isGeneratingCharacters || !title.trim() || !description.trim() || !summary.trim()
+                }
+                className="border-emerald-700 bg-transparent text-emerald-400 hover:bg-emerald-900/50 hover:text-emerald-300"
+              >
+                {isGeneratingCharacters ? (
+                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-1 h-4 w-4" />
+                )}
+                AI 생성
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={isEditMode ? handleOpenAddCharacter : handleAddCharacter}
+              disabled={isEditMode ? isAddingCharacter : characters.length >= 20}
+              className="border-stone-700 bg-transparent text-stone-300 hover:bg-stone-800 hover:text-white"
+            >
+              <Plus className="mr-1 h-4 w-4" /> 인물 추가
+            </Button>
+          </div>
         </div>
 
         {/* 새 캐릭터 추가 폼 (편집 모드) */}
@@ -158,6 +206,7 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
             name={newCharacterData.name || ""}
             role={newCharacterData.role || ""}
             description={newCharacterData.description || ""}
+            personality={newCharacterData.personality || ""}
             firstMessage={newCharacterData.firstMessage || ""}
             profileImage={newCharacterData.profileImage}
             backgroundImage={newCharacterData.backgroundImage}
@@ -166,6 +215,9 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
             onRoleChange={(v) => setNewCharacterData({ ...newCharacterData, role: v })}
             onDescriptionChange={(v) =>
               setNewCharacterData({ ...newCharacterData, description: v })
+            }
+            onPersonalityChange={(v) =>
+              setNewCharacterData({ ...newCharacterData, personality: v })
             }
             onFirstMessageChange={(v) =>
               setNewCharacterData({ ...newCharacterData, firstMessage: v })
@@ -195,6 +247,7 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
                       name={editingCharacterData.name || ""}
                       role={editingCharacterData.role || ""}
                       description={editingCharacterData.description || ""}
+                      personality={editingCharacterData.personality || ""}
                       firstMessage={editingCharacterData.firstMessage || ""}
                       profileImage={editingCharacterData.profileImage ?? null}
                       backgroundImage={editingCharacterData.backgroundImage ?? null}
@@ -207,6 +260,9 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
                       }
                       onDescriptionChange={(v) =>
                         setEditingCharacterData({ ...editingCharacterData, description: v })
+                      }
+                      onPersonalityChange={(v) =>
+                        setEditingCharacterData({ ...editingCharacterData, personality: v })
                       }
                       onFirstMessageChange={(v) =>
                         setEditingCharacterData({ ...editingCharacterData, firstMessage: v })
@@ -221,6 +277,7 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
                       name={char.name}
                       role={char.role}
                       description={char.description}
+                      personality={char.personality || ""}
                       firstMessage={char.firstMessage || ""}
                       profileImage={char.profileImage}
                       backgroundImage={char.backgroundImage}
@@ -238,6 +295,7 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
                     name={char.name}
                     role={char.role}
                     description={char.description}
+                    personality={char.personality ?? null}
                     firstMessage={char.firstMessage ?? null}
                     profileImage={char.profileImage}
                     backgroundImage={char.backgroundImage}
@@ -245,6 +303,7 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
                     onNameChange={(v) => handleCharacterChange(char.id, "name", v)}
                     onRoleChange={(v) => handleCharacterChange(char.id, "role", v)}
                     onDescriptionChange={(v) => handleCharacterChange(char.id, "description", v)}
+                    onPersonalityChange={(v) => handleCharacterChange(char.id, "personality", v)}
                     onFirstMessageChange={(v) => handleCharacterChange(char.id, "firstMessage", v)}
                     onDelete={() => handleRemoveCharacter(char.id)}
                   />

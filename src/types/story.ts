@@ -227,3 +227,34 @@ export interface StoryFormData {
   coverColor: string;
   characters: CreateCharacterRequest[];
 }
+
+// ==========================================
+// AI Generation (AI 스토리/캐릭터 생성)
+// ==========================================
+
+export interface GenerateSummaryRequest {
+  title: string;
+  description: string;
+}
+
+export interface GenerateSummaryResponse {
+  summary: string;
+}
+
+export interface GenerateCharactersRequest {
+  title: string;
+  description: string;
+  summary: string;
+}
+
+export interface GeneratedCharacter {
+  name: string;
+  role: string;
+  description: string;
+  personality: string;
+  firstMessage: string;
+}
+
+export interface GenerateCharactersResponse {
+  characters: GeneratedCharacter[];
+}

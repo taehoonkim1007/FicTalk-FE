@@ -1,6 +1,10 @@
 import type {
   CharactersListResponse,
   CreateStoryRequest,
+  GenerateCharactersRequest,
+  GenerateCharactersResponse,
+  GenerateSummaryRequest,
+  GenerateSummaryResponse,
   GetStoriesParams,
   HeroSlide,
   StoriesListResponse,
@@ -72,5 +76,32 @@ export const updateStory = async (id: string, data: UpdateStoryRequest): Promise
  */
 export const deleteStory = async (id: string): Promise<{ message: string }> => {
   const response = await apiClient.delete<{ message: string }>(`/stories/${id}`);
+  return response.data;
+};
+
+// ==========================================
+// AI Generation (AI 스토리/캐릭터 생성)
+// ==========================================
+
+/**
+ * AI 줄거리 생성
+ */
+export const generateSummary = async (
+  data: GenerateSummaryRequest,
+): Promise<GenerateSummaryResponse> => {
+  const response = await apiClient.post<GenerateSummaryResponse>("/stories/generate/summary", data);
+  return response.data;
+};
+
+/**
+ * AI 캐릭터 생성
+ */
+export const generateCharacters = async (
+  data: GenerateCharactersRequest,
+): Promise<GenerateCharactersResponse> => {
+  const response = await apiClient.post<GenerateCharactersResponse>(
+    "/stories/generate/characters",
+    data,
+  );
   return response.data;
 };

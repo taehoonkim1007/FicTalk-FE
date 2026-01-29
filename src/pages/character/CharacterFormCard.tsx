@@ -7,6 +7,7 @@ export interface CharacterFormCardProps {
   name: string;
   role: string;
   description: string;
+  personality: string | null;
   firstMessage: string | null;
   profileImage: string | null;
   backgroundImage: string | null;
@@ -15,6 +16,7 @@ export interface CharacterFormCardProps {
   onNameChange?: (value: string) => void;
   onRoleChange?: (value: string) => void;
   onDescriptionChange?: (value: string) => void;
+  onPersonalityChange?: (value: string) => void;
   onFirstMessageChange?: (value: string) => void;
   onEdit?: () => void;
   onDelete?: () => void;
@@ -28,6 +30,7 @@ export const CharacterFormCard = ({
   name,
   role,
   description,
+  personality,
   firstMessage,
   profileImage,
   backgroundImage,
@@ -36,6 +39,7 @@ export const CharacterFormCard = ({
   onNameChange,
   onRoleChange,
   onDescriptionChange,
+  onPersonalityChange,
   onFirstMessageChange,
   onEdit,
   onDelete,
@@ -85,17 +89,25 @@ export const CharacterFormCard = ({
               type="text"
               value={description}
               onChange={(e) => onDescriptionChange?.(e.target.value)}
-              placeholder="캐릭터 설명 및 성격"
+              placeholder="캐릭터 설명"
               maxLength={500}
               className="w-full rounded-lg border-0 bg-stone-800 px-3 py-2 text-sm text-white placeholder-stone-500 ring-1 ring-stone-700 outline-none focus:ring-emerald-500"
             />
-            <textarea
+            <input
+              type="text"
+              value={personality || ""}
+              onChange={(e) => onPersonalityChange?.(e.target.value)}
+              placeholder="성격"
+              maxLength={500}
+              className="w-full rounded-lg border-0 bg-stone-800 px-3 py-2 text-sm text-white placeholder-stone-500 ring-1 ring-stone-700 outline-none focus:ring-emerald-500"
+            />
+            <input
+              type="text"
               value={firstMessage || ""}
               onChange={(e) => onFirstMessageChange?.(e.target.value)}
               placeholder="첫 인사말 (채팅 시작 시 캐릭터가 보내는 메시지)"
-              maxLength={1000}
-              rows={2}
-              className="w-full resize-none rounded-lg border-0 bg-stone-800 px-3 py-2 text-sm text-white placeholder-stone-500 ring-1 ring-stone-700 outline-none focus:ring-emerald-500"
+              maxLength={100}
+              className="w-full rounded-lg border-0 bg-stone-800 px-3 py-2 text-sm text-white placeholder-stone-500 ring-1 ring-stone-700 outline-none focus:ring-emerald-500"
             />
           </div>
 

@@ -114,7 +114,7 @@ export const CategoryCharacterSection = memo(({ category }: CategoryCharacterSec
                     className="truncate text-white backdrop-blur-md"
                   >
                     {character.story.seriesTitle
-                      ? `${character.story.seriesTitle} - ${character.story.title}`
+                      ? `${character.story.title} - ${character.story.seriesTitle}`
                       : character.story.title}
                   </Badge>
                   <span className="flex shrink-0 items-center gap-1 font-medium transition-colors group-hover:text-emerald-500">

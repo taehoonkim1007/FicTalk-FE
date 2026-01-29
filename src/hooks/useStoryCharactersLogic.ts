@@ -8,36 +8,46 @@ import {
   useDeleteCharacter,
   useUpdateCharacter,
 } from "@/queries/useCharactersQueries";
-import { useStoryCharacters } from "@/queries/useStoriesQueries";
+import { useGenerateCharacters, useStoryCharacters } from "@/queries/useStoriesQueries";
 import type {
   Character,
+  CharacterDetail,
   CreateCharacterRequest,
-  StoryDetail,
   UpdateCharacterRequest,
 } from "@/types/story";
 
 interface UseStoryCharactersLogicProps {
   storyId: string;
   isEditMode: boolean;
-  initialCharacters?: StoryDetail["characters"];
+  initialCharacters: CharacterDetail[];
+  formState: {
+    title: string;
+    description: string;
+    summary: string;
+  };
 }
 
 export const useStoryCharactersLogic = ({
   storyId,
   isEditMode,
   initialCharacters,
+  formState,
 }: UseStoryCharactersLogicProps) => {
   // 생성 모드: 캐릭터 로컬 상태
   const [characters, setCharacters] = useState<(CreateCharacterRequest & { id: string })[]>([]);
 
   // 편집 모드: 캐릭터 목록 조회
   const { data: charactersData } = useStoryCharacters(storyId, isEditMode);
-  const existingCharacters = charactersData?.characters || initialCharacters || [];
+  const existingCharacters = charactersData?.characters ?? initialCharacters;
 
   // 편집 모드: 캐릭터 CRUD Queries
   const { mutate: createCharacter, isPending: isCreatingCharacter } = useCreateCharacter(storyId);
   const { mutate: updateCharacter, isPending: isUpdatingCharacter } = useUpdateCharacter(storyId);
   const { mutate: deleteCharacter, isPending: isDeletingCharacter } = useDeleteCharacter(storyId);
+
+  // AI 캐릭터 생성
+  const { mutate: generateCharactersMutate, isPending: isGeneratingCharacters } =
+    useGenerateCharacters();
 
   // 편집 중인 캐릭터 상태
   const [editingCharacterId, setEditingCharacterId] = useState<string | null>(null);
@@ -50,6 +60,7 @@ export const useStoryCharactersLogic = ({
     name: "",
     role: "",
     description: "",
+    personality: "",
     firstMessage: "",
     profileImage: null,
     backgroundImage: null,
@@ -68,6 +79,7 @@ export const useStoryCharactersLogic = ({
         name: "",
         role: "",
         description: "",
+        personality: "",
         firstMessage: "",
         profileImage: null,
         backgroundImage: null,
@@ -93,12 +105,15 @@ export const useStoryCharactersLogic = ({
   // ==========================================
 
   // 수정 시작
-  const handleStartEditCharacter = (char: Character & { firstMessage?: string | null }) => {
+  const handleStartEditCharacter = (
+    char: Character & { personality?: string | null; firstMessage?: string | null },
+  ) => {
     setEditingCharacterId(char.id);
     setEditingCharacterData({
       name: char.name,
       role: char.role,
       description: char.description,
+      personality: char.personality || "",
       firstMessage: char.firstMessage || "",
       profileImage: char.profileImage,
       backgroundImage: char.backgroundImage,
@@ -159,6 +174,7 @@ export const useStoryCharactersLogic = ({
       name: "",
       role: "",
       description: "",
+      personality: "",
       firstMessage: "",
       profileImage: null,
       backgroundImage: null,
@@ -192,6 +208,44 @@ export const useStoryCharactersLogic = ({
     });
   };
 
+  // ==========================================
+  // 핸들러: AI 캐릭터 생성
+  // ==========================================
+  const handleGenerateCharacters = () => {
+    if (!formState.title.trim() || !formState.description.trim() || !formState.summary.trim()) {
+      toast.error("제목, 한줄 소개, 줄거리를 먼저 입력해주세요.");
+      return;
+    }
+
+    generateCharactersMutate(
+      {
+        title: formState.title,
+        description: formState.description,
+        summary: formState.summary,
+      },
+      {
+        onSuccess: (data) => {
+          const newCharacters = data.characters.map((char) => ({
+            id: crypto.randomUUID(),
+            name: char.name,
+            role: char.role,
+            description: char.description,
+            personality: char.personality,
+            firstMessage: char.firstMessage,
+            profileImage: null,
+            backgroundImage: null,
+            backgroundColor: null,
+          }));
+          setCharacters(newCharacters);
+          toast.success(`${data.characters.length}명의 캐릭터가 생성되었습니다.`);
+        },
+        onError: () => {
+          toast.error("캐릭터 생성에 실패했습니다.");
+        },
+      },
+    );
+  };
+
   return {
     // 상태
     characters,
@@ -205,6 +259,7 @@ export const useStoryCharactersLogic = ({
     isCreatingCharacter,
     isUpdatingCharacter,
     isDeletingCharacter,
+    isGeneratingCharacters,
 
     // 핸들러
     handleAddCharacter,
@@ -217,5 +272,6 @@ export const useStoryCharactersLogic = ({
     handleOpenAddCharacter,
     handleCancelAddCharacter,
     handleSaveNewCharacter,
+    handleGenerateCharacters,
   };
 };

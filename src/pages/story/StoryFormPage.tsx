@@ -122,7 +122,7 @@ export const StoryFormPage = () => {
       <main className="mx-auto max-w-3xl px-4 py-6">
         <StoryForm
           key={existingStory?.id || "new"}
-          initialData={existingStory}
+          initialData={existingStory ?? null}
           onSubmit={handleFormSubmit}
           isSubmitting={isCreating || isUpdating}
           isEditMode={isEditMode}

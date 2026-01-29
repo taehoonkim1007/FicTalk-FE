@@ -3,6 +3,8 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tansta
 import {
   createStory,
   deleteStory,
+  generateCharacters,
+  generateSummary,
   getHeroSlides,
   getMyStories,
   getStories,
@@ -139,5 +141,27 @@ export const useDeleteStory = () => {
       void queryClient.invalidateQueries({ queryKey: storiesKeys.lists() });
       void queryClient.invalidateQueries({ queryKey: storiesKeys.myStories() });
     },
+  });
+};
+
+// ==========================================
+// AI Generation Mutations
+// ==========================================
+
+/**
+ * AI 줄거리 생성
+ */
+export const useGenerateSummary = () => {
+  return useMutation({
+    mutationFn: generateSummary,
+  });
+};
+
+/**
+ * AI 캐릭터 생성
+ */
+export const useGenerateCharacters = () => {
+  return useMutation({
+    mutationFn: generateCharacters,
   });
 };
