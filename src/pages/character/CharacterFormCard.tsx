@@ -1,6 +1,7 @@
 import { Check, ImagePlus, Loader2, Pencil, Trash2, X } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
 import { getImageUrl } from "@/lib/image";
 
 export interface CharacterFormCardProps {
@@ -82,46 +83,41 @@ export const CharacterFormCard = ({
           {/* 입력 필드 */}
           <div className="min-w-0 flex-1 space-y-3">
             <div className="grid gap-3 sm:grid-cols-2">
-              <input
-                type="text"
+              <Input
                 value={name}
                 onChange={(e) => onNameChange?.(e.target.value)}
                 placeholder="이름"
                 maxLength={100}
-                className="rounded-lg border-0 bg-stone-800 px-3 py-2 text-sm text-white placeholder-stone-500 ring-1 ring-stone-700 outline-none focus:ring-emerald-500"
+                className="h-auto bg-stone-800 px-3 py-2 text-sm ring-stone-700"
               />
-              <input
-                type="text"
+              <Input
                 value={role}
                 onChange={(e) => onRoleChange?.(e.target.value)}
                 placeholder="역할 (예: 주인공)"
                 maxLength={50}
-                className="rounded-lg border-0 bg-stone-800 px-3 py-2 text-sm text-white placeholder-stone-500 ring-1 ring-stone-700 outline-none focus:ring-emerald-500"
+                className="h-auto bg-stone-800 px-3 py-2 text-sm ring-stone-700"
               />
             </div>
-            <input
-              type="text"
+            <Input
               value={description}
               onChange={(e) => onDescriptionChange?.(e.target.value)}
               placeholder="캐릭터 설명"
               maxLength={500}
-              className="w-full rounded-lg border-0 bg-stone-800 px-3 py-2 text-sm text-white placeholder-stone-500 ring-1 ring-stone-700 outline-none focus:ring-emerald-500"
+              className="h-auto bg-stone-800 px-3 py-2 text-sm ring-stone-700"
             />
-            <input
-              type="text"
+            <Input
               value={personality || ""}
               onChange={(e) => onPersonalityChange?.(e.target.value)}
               placeholder="성격"
               maxLength={500}
-              className="w-full rounded-lg border-0 bg-stone-800 px-3 py-2 text-sm text-white placeholder-stone-500 ring-1 ring-stone-700 outline-none focus:ring-emerald-500"
+              className="h-auto bg-stone-800 px-3 py-2 text-sm ring-stone-700"
             />
-            <input
-              type="text"
+            <Input
               value={firstMessage || ""}
               onChange={(e) => onFirstMessageChange?.(e.target.value)}
               placeholder="첫 인사말 (채팅 시작 시 캐릭터가 보내는 메시지)"
               maxLength={100}
-              className="w-full rounded-lg border-0 bg-stone-800 px-3 py-2 text-sm text-white placeholder-stone-500 ring-1 ring-stone-700 outline-none focus:ring-emerald-500"
+              className="h-auto bg-stone-800 px-3 py-2 text-sm ring-stone-700"
             />
           </div>
 

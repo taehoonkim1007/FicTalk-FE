@@ -1,7 +1,8 @@
 import { useNavigate, useParams } from "react-router-dom";
 
-import { ArrowLeft, BookOpen, Loader2, MessageCircle } from "lucide-react";
+import { ArrowLeft, BookOpen, MessageCircle } from "lucide-react";
 
+import { ErrorState, LoadingState } from "@/components/common";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { getImageUrl } from "@/lib/image";
@@ -33,21 +34,19 @@ export const CharacterDetailPage = () => {
   };
 
   if (isLoading) {
-    return (
-      <main className="flex min-h-[50vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
-      </main>
-    );
+    return <LoadingState />;
   }
 
   if (isError || !character) {
     return (
-      <main className="flex min-h-[50vh] flex-col items-center justify-center gap-4">
-        <p className="text-red-400">캐릭터를 찾을 수 없습니다.</p>
-        <Button variant="ghost" onClick={() => void navigate(-1)}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> 돌아가기
-        </Button>
-      </main>
+      <ErrorState
+        message="캐릭터를 찾을 수 없습니다."
+        action={
+          <Button variant="ghost" onClick={() => void navigate(-1)}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> 돌아가기
+          </Button>
+        }
+      />
     );
   }
 

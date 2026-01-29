@@ -162,17 +162,31 @@ export const useStoryCharactersLogic = ({
     );
   };
 
-  // 삭제
+  // 삭제 확인 대상 캐릭터 상태
+  const [characterToDelete, setCharacterToDelete] = useState<string | null>(null);
+
+  // 삭제 확인 다이얼로그 열기
   const handleDeleteCharacter = (characterId: string) => {
-    if (!window.confirm("정말로 이 캐릭터를 삭제하시겠습니까?")) return;
-    deleteCharacter(characterId, {
+    setCharacterToDelete(characterId);
+  };
+
+  // 삭제 확인
+  const handleConfirmDeleteCharacter = () => {
+    if (!characterToDelete) return;
+    deleteCharacter(characterToDelete, {
       onSuccess: () => {
         toast.success(SUCCESS_MESSAGES.CHARACTER_DELETED);
+        setCharacterToDelete(null);
       },
       onError: () => {
         toast.error(ERROR_MESSAGES.CHARACTER_DELETE_FAILED);
       },
     });
+  };
+
+  // 삭제 취소
+  const handleCancelDeleteCharacter = () => {
+    setCharacterToDelete(null);
   };
 
   // 새 캐릭터 모달 열기
@@ -324,6 +338,7 @@ export const useStoryCharactersLogic = ({
     isDeletingCharacter,
     isGeneratingCharacters,
     imageModalCharacter,
+    characterToDelete,
 
     // 핸들러
     handleAddCharacter,
@@ -333,6 +348,8 @@ export const useStoryCharactersLogic = ({
     handleCancelEditCharacter,
     handleSaveCharacter,
     handleDeleteCharacter,
+    handleConfirmDeleteCharacter,
+    handleCancelDeleteCharacter,
     handleOpenAddCharacter,
     handleCancelAddCharacter,
     handleSaveNewCharacter,
