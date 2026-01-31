@@ -40,6 +40,8 @@ export const StoryFormPage = () => {
         description: data.description,
         summary: data.summary,
         coverColor: data.coverColor,
+        coverImage: data.coverImage,
+        backgroundImage: data.backgroundImage,
       };
       updateStory(
         { id: storyId, data: updateData },

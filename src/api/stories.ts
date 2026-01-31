@@ -1,8 +1,14 @@
 import type {
   CharactersListResponse,
   CreateStoryRequest,
+  GenerateBackgroundImageRequest,
+  GenerateBackgroundImageResponse,
+  GenerateCharacterBackgroundImageRequest,
+  GenerateCharacterBackgroundImageResponse,
   GenerateCharactersRequest,
   GenerateCharactersResponse,
+  GenerateCoverImageRequest,
+  GenerateCoverImageResponse,
   GenerateProfileImageRequest,
   GenerateProfileImageResponse,
   GenerateSummaryRequest,
@@ -28,7 +34,7 @@ export const getHeroSlides = async (): Promise<HeroSlide[]> => {
 /**
  * 스토리 목록 조회 (필터, 페이지네이션)
  */
-export const getStories = async (params?: GetStoriesParams): Promise<StoriesListResponse> => {
+export const getStories = async (params: GetStoriesParams = {}): Promise<StoriesListResponse> => {
   const response = await apiClient.get<StoriesListResponse>("/stories", { params });
   return response.data;
 };
@@ -118,6 +124,48 @@ export const generateProfileImage = async (
     "/stories/generate/profile-image",
     data,
     { timeout: 180000 }, // 이미지 생성은 오래 걸림 (180초)
+  );
+  return response.data;
+};
+
+/**
+ * AI 커버 이미지 생성
+ */
+export const generateCoverImage = async (
+  data: GenerateCoverImageRequest,
+): Promise<GenerateCoverImageResponse> => {
+  const response = await apiClient.post<GenerateCoverImageResponse>(
+    "/stories/generate/cover-image",
+    data,
+    { timeout: 180000 },
+  );
+  return response.data;
+};
+
+/**
+ * AI 배경 이미지 생성
+ */
+export const generateBackgroundImage = async (
+  data: GenerateBackgroundImageRequest,
+): Promise<GenerateBackgroundImageResponse> => {
+  const response = await apiClient.post<GenerateBackgroundImageResponse>(
+    "/stories/generate/background-image",
+    data,
+    { timeout: 180000 },
+  );
+  return response.data;
+};
+
+/**
+ * AI 캐릭터 배경 이미지 생성
+ */
+export const generateCharacterBackgroundImage = async (
+  data: GenerateCharacterBackgroundImageRequest,
+): Promise<GenerateCharacterBackgroundImageResponse> => {
+  const response = await apiClient.post<GenerateCharacterBackgroundImageResponse>(
+    "/stories/generate/character-background-image",
+    data,
+    { timeout: 180000 },
   );
   return response.data;
 };

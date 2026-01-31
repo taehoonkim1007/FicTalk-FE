@@ -3,7 +3,10 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tansta
 import {
   createStory,
   deleteStory,
+  generateBackgroundImage,
+  generateCharacterBackgroundImage,
   generateCharacters,
+  generateCoverImage,
   generateProfileImage,
   generateSummary,
   getHeroSlides,
@@ -173,5 +176,32 @@ export const useGenerateCharacters = () => {
 export const useGenerateProfileImage = () => {
   return useMutation({
     mutationFn: generateProfileImage,
+  });
+};
+
+/**
+ * AI 커버 이미지 생성
+ */
+export const useGenerateCoverImage = () => {
+  return useMutation({
+    mutationFn: generateCoverImage,
+  });
+};
+
+/**
+ * AI 배경 이미지 생성
+ */
+export const useGenerateBackgroundImage = () => {
+  return useMutation({
+    mutationFn: generateBackgroundImage,
+  });
+};
+
+/**
+ * AI 캐릭터 배경 이미지 생성
+ */
+export const useGenerateCharacterBackgroundImage = () => {
+  return useMutation({
+    mutationFn: generateCharacterBackgroundImage,
   });
 };

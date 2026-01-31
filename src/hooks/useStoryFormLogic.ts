@@ -15,6 +15,10 @@ export const useStoryFormLogic = ({ initialData }: UseStoryFormLogicProps) => {
   const [description, setDescription] = useState(initialData?.description || "");
   const [summary, setSummary] = useState(initialData?.summary || "");
   const coverColor = initialData?.coverColor || "bg-stone-800";
+  const [coverImage, setCoverImage] = useState<string | null>(initialData?.coverImage ?? null);
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(
+    initialData?.backgroundImage ?? null,
+  );
 
   const isFormValid = title.trim() && authorName.trim() && description.trim() && summary.trim();
 
@@ -50,6 +54,10 @@ export const useStoryFormLogic = ({ initialData }: UseStoryFormLogicProps) => {
     summary,
     setSummary,
     coverColor,
+    coverImage,
+    setCoverImage,
+    backgroundImage,
+    setBackgroundImage,
     isFormValid,
     // AI 생성
     isGeneratingSummary,

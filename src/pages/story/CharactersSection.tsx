@@ -1,6 +1,8 @@
+import { useState } from "react";
+
 import { Loader2, Plus, Sparkles, Users } from "lucide-react";
 
-import { CharacterImageModal } from "@/components/character";
+import { CharacterFormCard, CharacterImageModal } from "@/components/character";
 import { EmptyState } from "@/components/common";
 import {
   AlertDialog,
@@ -13,7 +15,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { CharacterFormCard } from "@/pages/character/CharacterFormCard";
 import type {
   CharacterDetail,
   CreateCharacterRequest,
@@ -34,7 +35,10 @@ interface CharactersSectionProps {
   isUpdatingCharacter: boolean;
   isDeletingCharacter: boolean;
   isGeneratingCharacters: boolean;
+  isGeneratingBackgroundImage: boolean;
+  generatingBackgroundCharacterId: string | null;
   canGenerateCharacters: boolean;
+  storyBackgroundImage: string | null;
   imageModalCharacter: {
     id: string;
     name: string;
@@ -60,6 +64,13 @@ interface CharactersSectionProps {
   handleCancelAddCharacter: () => void;
   handleSaveNewCharacter: () => void;
   handleGenerateCharacters: () => void;
+  handleGenerateCharacterBackgroundImage: (char: {
+    id: string;
+    name: string;
+    role: string;
+    description: string;
+    personality?: string | null;
+  }) => void;
   handleOpenImageModal: (char: {
     id: string;
     name: string;
@@ -85,7 +96,10 @@ export const CharactersSection = ({
   isUpdatingCharacter,
   isDeletingCharacter,
   isGeneratingCharacters,
+  isGeneratingBackgroundImage,
+  generatingBackgroundCharacterId,
   canGenerateCharacters,
+  storyBackgroundImage,
   imageModalCharacter,
   characterToDelete,
   handleAddCharacter,
@@ -101,11 +115,23 @@ export const CharactersSection = ({
   handleCancelAddCharacter,
   handleSaveNewCharacter,
   handleGenerateCharacters,
+  handleGenerateCharacterBackgroundImage,
   handleOpenImageModal,
   handleCloseImageModal,
   handleConfirmImage,
 }: CharactersSectionProps) => {
   const displayCharacters = isEditMode ? existingCharacters : characters;
+
+  // 캐릭터별 "스토리 배경 사용" 상태 (characterId -> boolean)
+  const [useStoryBackgroundMap, setUseStoryBackgroundMap] = useState<Record<string, boolean>>({});
+
+  const handleUseStoryBackgroundChange = (characterId: string, checked: boolean) => {
+    setUseStoryBackgroundMap((prev) => ({ ...prev, [characterId]: checked }));
+    // 체크 시 스토리 배경 이미지를 캐릭터 배경으로 설정
+    if (checked && storyBackgroundImage) {
+      handleCharacterChange(characterId, "backgroundImage", storyBackgroundImage);
+    }
+  };
 
   return (
     <div>
@@ -165,6 +191,35 @@ export const CharactersSection = ({
           onFirstMessageChange={(v) =>
             setNewCharacterData({ ...newCharacterData, firstMessage: v })
           }
+          onProfileImageChange={(v) =>
+            setNewCharacterData({ ...newCharacterData, profileImage: v })
+          }
+          onBackgroundImageChange={(v) =>
+            setNewCharacterData({ ...newCharacterData, backgroundImage: v })
+          }
+          onGenerateBackgroundImage={() =>
+            handleGenerateCharacterBackgroundImage({
+              id: newCharacterData.id || "",
+              name: newCharacterData.name,
+              role: newCharacterData.role,
+              description: newCharacterData.description,
+              personality: newCharacterData.personality,
+            })
+          }
+          isGeneratingBackgroundImage={
+            isGeneratingBackgroundImage && generatingBackgroundCharacterId === newCharacterData.id
+          }
+          storyBackgroundImage={storyBackgroundImage}
+          useStoryBackground={useStoryBackgroundMap[newCharacterData.id || "new"] || false}
+          onUseStoryBackgroundChange={(checked) => {
+            setUseStoryBackgroundMap((prev) => ({
+              ...prev,
+              [newCharacterData.id || "new"]: checked,
+            }));
+            if (checked && storyBackgroundImage) {
+              setNewCharacterData({ ...newCharacterData, backgroundImage: storyBackgroundImage });
+            }
+          }}
           onSave={handleSaveNewCharacter}
           onCancel={handleCancelAddCharacter}
           isSaving={isCreatingCharacter}
@@ -210,6 +265,35 @@ export const CharactersSection = ({
                     onFirstMessageChange={(v) =>
                       setEditingCharacterData({ ...editingCharacterData, firstMessage: v })
                     }
+                    onProfileImageChange={(v) =>
+                      setEditingCharacterData({ ...editingCharacterData, profileImage: v })
+                    }
+                    onBackgroundImageChange={(v) =>
+                      setEditingCharacterData({ ...editingCharacterData, backgroundImage: v })
+                    }
+                    onGenerateBackgroundImage={() =>
+                      handleGenerateCharacterBackgroundImage({
+                        id: char.id,
+                        name: editingCharacterData.name || "",
+                        role: editingCharacterData.role || "",
+                        description: editingCharacterData.description || "",
+                        personality: editingCharacterData.personality,
+                      })
+                    }
+                    isGeneratingBackgroundImage={
+                      isGeneratingBackgroundImage && generatingBackgroundCharacterId === char.id
+                    }
+                    storyBackgroundImage={storyBackgroundImage}
+                    useStoryBackground={useStoryBackgroundMap[char.id] || false}
+                    onUseStoryBackgroundChange={(checked) => {
+                      setUseStoryBackgroundMap((prev) => ({ ...prev, [char.id]: checked }));
+                      if (checked && storyBackgroundImage) {
+                        setEditingCharacterData({
+                          ...editingCharacterData,
+                          backgroundImage: storyBackgroundImage,
+                        });
+                      }
+                    }}
                     onSave={() => handleSaveCharacter(char.id)}
                     onCancel={handleCancelEditCharacter}
                     isSaving={isUpdatingCharacter}
@@ -225,6 +309,8 @@ export const CharactersSection = ({
                     profileImage={char.profileImage}
                     backgroundImage={char.backgroundImage}
                     backgroundColor={char.backgroundColor}
+                    storyBackgroundImage={storyBackgroundImage}
+                    useStoryBackground={useStoryBackgroundMap[char.id] || false}
                     onEdit={() => handleStartEditCharacter(char)}
                     onDelete={() => handleDeleteCharacter(char.id)}
                     onGenerateImage={() => handleOpenImageModal(char)}
@@ -249,6 +335,27 @@ export const CharactersSection = ({
                   onDescriptionChange={(v) => handleCharacterChange(char.id, "description", v)}
                   onPersonalityChange={(v) => handleCharacterChange(char.id, "personality", v)}
                   onFirstMessageChange={(v) => handleCharacterChange(char.id, "firstMessage", v)}
+                  onProfileImageChange={(v) => handleCharacterChange(char.id, "profileImage", v)}
+                  onBackgroundImageChange={(v) =>
+                    handleCharacterChange(char.id, "backgroundImage", v)
+                  }
+                  onGenerateBackgroundImage={() =>
+                    handleGenerateCharacterBackgroundImage({
+                      id: char.id,
+                      name: char.name,
+                      role: char.role,
+                      description: char.description,
+                      personality: char.personality,
+                    })
+                  }
+                  isGeneratingBackgroundImage={
+                    isGeneratingBackgroundImage && generatingBackgroundCharacterId === char.id
+                  }
+                  storyBackgroundImage={storyBackgroundImage}
+                  useStoryBackground={useStoryBackgroundMap[char.id] || false}
+                  onUseStoryBackgroundChange={(checked) =>
+                    handleUseStoryBackgroundChange(char.id, checked)
+                  }
                   onDelete={() => handleRemoveCharacter(char.id)}
                   onGenerateImage={() => handleOpenImageModal(char)}
                 />

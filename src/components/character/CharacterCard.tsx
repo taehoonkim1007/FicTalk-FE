@@ -22,7 +22,7 @@ export const CharacterCard = ({
   <div
     onClick={onClick}
     className={cn(
-      "group relative h-40 w-full cursor-pointer overflow-hidden rounded-xl bg-stone-900",
+      "group relative h-42 w-full cursor-pointer overflow-hidden rounded-xl bg-stone-900",
       "transition-all hover:ring-2 hover:ring-emerald-500",
       className,
     )}
@@ -58,9 +58,9 @@ export const CharacterCard = ({
           </AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="text-lg font-bold text-white drop-shadow-md">{character.name}</span>
-            <span className="rounded border border-stone-700 bg-stone-800/80 px-2 py-0.5 text-xs text-stone-300 backdrop-blur-sm">
+          <div>
+            <p className="text-lg font-bold text-white drop-shadow-md">{character.name}</p>
+            <span className="mt-1 inline-block rounded border border-stone-700 bg-stone-800/80 px-2 py-0.5 text-xs text-stone-300 backdrop-blur-sm">
               {character.role}
             </span>
           </div>

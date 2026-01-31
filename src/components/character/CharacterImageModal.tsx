@@ -11,7 +11,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useGenerateProfileImage } from "@/queries/useStoriesQueries";
@@ -36,8 +35,6 @@ export const CharacterImageModal = ({
 }: CharacterImageModalProps) => {
   // 편집 가능한 캐릭터 정보 상태
   const [editedCharacter, setEditedCharacter] = useState({
-    name: character.name,
-    role: character.role,
     description: character.description,
     personality: character.personality || "",
   });
@@ -52,8 +49,6 @@ export const CharacterImageModal = ({
   const handleOpenChange = (open: boolean) => {
     if (open) {
       setEditedCharacter({
-        name: character.name,
-        role: character.role,
         description: character.description,
         personality: character.personality || "",
       });
@@ -65,14 +60,6 @@ export const CharacterImageModal = ({
 
   // AI 이미지 생성
   const handleGenerate = () => {
-    if (!editedCharacter.name.trim()) {
-      toast.error("캐릭터 이름을 입력해주세요.");
-      return;
-    }
-    if (!editedCharacter.role.trim()) {
-      toast.error("캐릭터 역할을 입력해주세요.");
-      return;
-    }
     if (!editedCharacter.description.trim()) {
       toast.error("캐릭터 설명을 입력해주세요.");
       return;
@@ -84,8 +71,6 @@ export const CharacterImageModal = ({
 
     generateImage(
       {
-        name: editedCharacter.name,
-        role: editedCharacter.role,
         description: editedCharacter.description,
         personality: editedCharacter.personality,
       },
@@ -152,32 +137,6 @@ export const CharacterImageModal = ({
           {/* 캐릭터 정보 입력 필드 */}
           <div className="space-y-3">
             <div>
-              <Label htmlFor="char-name" className="mb-1 font-medium text-stone-300">
-                이름
-              </Label>
-              <Input
-                id="char-name"
-                value={editedCharacter.name}
-                onChange={(e) => setEditedCharacter({ ...editedCharacter, name: e.target.value })}
-                placeholder="캐릭터 이름"
-                maxLength={100}
-                className="h-auto bg-stone-800 px-3 py-2 text-sm ring-stone-700"
-              />
-            </div>
-            <div>
-              <Label htmlFor="char-role" className="mb-1 font-medium text-stone-300">
-                역할
-              </Label>
-              <Input
-                id="char-role"
-                value={editedCharacter.role}
-                onChange={(e) => setEditedCharacter({ ...editedCharacter, role: e.target.value })}
-                placeholder="주인공 또는 조연"
-                maxLength={50}
-                className="h-auto bg-stone-800 px-3 py-2 text-sm ring-stone-700"
-              />
-            </div>
-            <div>
               <Label htmlFor="char-description" className="mb-1 font-medium text-stone-300">
                 설명
               </Label>
@@ -205,7 +164,7 @@ export const CharacterImageModal = ({
                 }
                 placeholder="캐릭터의 성격 특성"
                 maxLength={500}
-                rows={2}
+                rows={3}
                 className="min-h-0 bg-stone-800 px-3 py-2 text-sm ring-stone-700"
               />
             </div>
@@ -235,19 +194,30 @@ export const CharacterImageModal = ({
               </Button>
             </>
           ) : (
-            <Button
-              type="button"
-              onClick={handleGenerate}
-              disabled={isGenerating}
-              className="bg-emerald-600 text-white hover:bg-emerald-500"
-            >
-              {isGenerating ? (
-                <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-              ) : (
-                <Sparkles className="mr-1 h-4 w-4" />
-              )}
-              AI 생성
-            </Button>
+            <>
+              <Button
+                type="button"
+                onClick={handleGenerate}
+                disabled={isGenerating}
+                className="bg-emerald-600 text-white hover:bg-emerald-500"
+              >
+                {isGenerating ? (
+                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-1 h-4 w-4" />
+                )}
+                AI 생성
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={isGenerating}
+                className="bg-white text-black hover:bg-stone-100"
+              >
+                취소
+              </Button>
+            </>
           )}
         </div>
       </DialogContent>

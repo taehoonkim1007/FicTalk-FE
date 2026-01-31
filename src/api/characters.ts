@@ -13,7 +13,7 @@ import { apiClient } from "./client";
  * 캐릭터 목록 조회 (카테고리별 필터링 가능)
  */
 export const getCharacters = async (
-  params: GetCharactersParams,
+  params: GetCharactersParams = {},
 ): Promise<CharactersWithStoryListResponse> => {
   const response = await apiClient.get<CharactersWithStoryListResponse>("/characters", { params });
   return response.data;

@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStoryCharactersLogic } from "@/hooks/useStoryCharactersLogic";
 import { useStoryFormLogic } from "@/hooks/useStoryFormLogic";
 import { CharactersSection } from "@/pages/story/CharactersSection";
+import { ImageSection } from "@/pages/story/ImageSection";
 import { StoryInfoSection } from "@/pages/story/StoryInfoSection";
 import type { StoryDetail, StoryFormData } from "@/types/story";
 
@@ -34,6 +35,10 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
     summary,
     setSummary,
     coverColor,
+    coverImage,
+    setCoverImage,
+    backgroundImage,
+    setBackgroundImage,
     isFormValid,
     isGeneratingSummary,
     handleGenerateSummary,
@@ -53,6 +58,8 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
     isUpdatingCharacter,
     isDeletingCharacter,
     isGeneratingCharacters,
+    isGeneratingBackgroundImage,
+    generatingBackgroundCharacterId,
     imageModalCharacter,
     characterToDelete,
     handleAddCharacter,
@@ -68,6 +75,7 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
     handleCancelAddCharacter,
     handleSaveNewCharacter,
     handleGenerateCharacters,
+    handleGenerateCharacterBackgroundImage,
     handleOpenImageModal,
     handleCloseImageModal,
     handleConfirmImage,
@@ -87,12 +95,14 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
       description,
       summary,
       coverColor,
+      coverImage,
+      backgroundImage,
       characters,
     });
   };
 
-  // AI 캐릭터 생성 가능 여부
-  const canGenerateCharacters = !!(title.trim() && description.trim() && summary.trim());
+  // 스토리 정보 입력 완료 여부 (이미지/캐릭터 탭 활성화 조건)
+  const isStoryInfoComplete = !!(title.trim() && description.trim() && summary.trim());
 
   return (
     <form onSubmit={handleSubmit} className="pb-24">
@@ -100,7 +110,8 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="story">1. 스토리 작성</TabsTrigger>
-          <TabsTrigger value="characters">2. 캐릭터 설정</TabsTrigger>
+          <TabsTrigger value="images">2. 이미지 설정</TabsTrigger>
+          <TabsTrigger value="characters">3. 캐릭터 설정</TabsTrigger>
         </TabsList>
 
         {/* 탭 내용 */}
@@ -119,6 +130,18 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
           />
         </TabsContent>
 
+        <TabsContent value="images">
+          <ImageSection
+            coverImage={coverImage}
+            onCoverImageChange={setCoverImage}
+            backgroundImage={backgroundImage}
+            onBackgroundImageChange={setBackgroundImage}
+            title={title}
+            description={description}
+            summary={summary}
+          />
+        </TabsContent>
+
         <TabsContent value="characters">
           <CharactersSection
             isEditMode={isEditMode}
@@ -134,7 +157,10 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
             isUpdatingCharacter={isUpdatingCharacter}
             isDeletingCharacter={isDeletingCharacter}
             isGeneratingCharacters={isGeneratingCharacters}
-            canGenerateCharacters={canGenerateCharacters}
+            isGeneratingBackgroundImage={isGeneratingBackgroundImage}
+            generatingBackgroundCharacterId={generatingBackgroundCharacterId}
+            canGenerateCharacters={isStoryInfoComplete}
+            storyBackgroundImage={backgroundImage}
             imageModalCharacter={imageModalCharacter}
             characterToDelete={characterToDelete}
             handleAddCharacter={handleAddCharacter}
@@ -150,6 +176,7 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
             handleCancelAddCharacter={handleCancelAddCharacter}
             handleSaveNewCharacter={handleSaveNewCharacter}
             handleGenerateCharacters={handleGenerateCharacters}
+            handleGenerateCharacterBackgroundImage={handleGenerateCharacterBackgroundImage}
             handleOpenImageModal={handleOpenImageModal}
             handleCloseImageModal={handleCloseImageModal}
             handleConfirmImage={handleConfirmImage}

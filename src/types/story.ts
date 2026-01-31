@@ -54,6 +54,7 @@ export interface CharacterWithStory {
     authorName: string;
     coverColor: string;
     coverImage: string | null;
+    backgroundImage: string | null;
   };
 }
 
@@ -66,6 +67,7 @@ export interface CharacterDetailWithStory extends CharacterDetail {
     authorName: string;
     coverColor: string;
     coverImage: string | null;
+    backgroundImage: string | null;
   };
 }
 
@@ -88,6 +90,7 @@ export interface Story {
   description: string;
   coverColor: string;
   coverImage: string | null;
+  backgroundImage: string | null;
   isOfficial: boolean;
   createdAt: string;
   category: Pick<Category, "id" | "name" | "slug">;
@@ -141,6 +144,7 @@ export interface GetStoriesParams {
 export interface GetCharactersParams {
   category?: string;
   search?: string;
+  role?: string;
   page?: number;
   limit?: number;
 }
@@ -165,6 +169,8 @@ export interface CreateStoryRequest {
   description: string;
   summary: string;
   coverColor?: string;
+  coverImage?: string | null;
+  backgroundImage?: string | null;
   categorySlug: string;
   characters?: CreateCharacterRequest[];
 }
@@ -176,6 +182,8 @@ export interface UpdateStoryRequest {
   description?: string;
   summary?: string;
   coverColor?: string;
+  coverImage?: string | null;
+  backgroundImage?: string | null;
 }
 
 export interface UpdateCharacterRequest {
@@ -225,6 +233,8 @@ export interface StoryFormData {
   description: string;
   summary: string;
   coverColor: string;
+  coverImage: string | null;
+  backgroundImage: string | null;
   characters: CreateCharacterRequest[];
 }
 
@@ -261,8 +271,6 @@ export interface GenerateCharactersResponse {
 
 /** 프로필 이미지 생성 요청 */
 export interface GenerateProfileImageRequest {
-  name: string;
-  role: string;
   description: string;
   personality: string;
 }
@@ -272,5 +280,43 @@ export interface GenerateProfileImageResponse {
   /** AI가 생성한 이미지 (base64 인코딩, PNG 포맷) */
   imageBase64: string;
   /** 이미지 생성에 사용된 프롬프트 (디버깅용) */
+  promptUsed: string;
+}
+
+/** 커버 이미지 생성 요청 */
+export interface GenerateCoverImageRequest {
+  title: string;
+  description: string;
+  summary: string;
+}
+
+/** 커버 이미지 생성 응답 */
+export interface GenerateCoverImageResponse {
+  imageBase64: string;
+  promptUsed: string;
+}
+
+/** 배경 이미지 생성 요청 */
+export interface GenerateBackgroundImageRequest {
+  title: string;
+  description: string;
+  summary: string;
+}
+
+/** 배경 이미지 생성 응답 */
+export interface GenerateBackgroundImageResponse {
+  imageBase64: string;
+  promptUsed: string;
+}
+
+/** 캐릭터 배경 이미지 생성 요청 */
+export interface GenerateCharacterBackgroundImageRequest {
+  description: string;
+  personality: string;
+}
+
+/** 캐릭터 배경 이미지 생성 응답 */
+export interface GenerateCharacterBackgroundImageResponse {
+  imageBase64: string;
   promptUsed: string;
 }

@@ -8,7 +8,11 @@ import {
   useDeleteCharacter,
   useUpdateCharacter,
 } from "@/queries/useCharactersQueries";
-import { useGenerateCharacters, useStoryCharacters } from "@/queries/useStoriesQueries";
+import {
+  useGenerateCharacterBackgroundImage,
+  useGenerateCharacters,
+  useStoryCharacters,
+} from "@/queries/useStoriesQueries";
 import type {
   Character,
   CharacterDetail,
@@ -49,6 +53,10 @@ export const useStoryCharactersLogic = ({
   const { mutate: generateCharactersMutate, isPending: isGeneratingCharacters } =
     useGenerateCharacters();
 
+  // AI 캐릭터 배경 이미지 생성
+  const { mutate: generateBackgroundImageMutate, isPending: isGeneratingBackgroundImage } =
+    useGenerateCharacterBackgroundImage();
+
   // 편집 중인 캐릭터 상태
   const [editingCharacterId, setEditingCharacterId] = useState<string | null>(null);
   const [editingCharacterData, setEditingCharacterData] = useState<UpdateCharacterRequest>({});
@@ -75,6 +83,11 @@ export const useStoryCharactersLogic = ({
     description: string;
     personality: string;
   } | null>(null);
+
+  // 배경 이미지 생성 중인 캐릭터 ID
+  const [generatingBackgroundCharacterId, setGeneratingBackgroundCharacterId] = useState<
+    string | null
+  >(null);
 
   // ==========================================
   // 핸들러: 로컬 상태 (생성 모드)
@@ -323,6 +336,64 @@ export const useStoryCharactersLogic = ({
     );
   };
 
+  // ==========================================
+  // 핸들러: AI 캐릭터 배경 이미지 생성
+  // ==========================================
+  const handleGenerateCharacterBackgroundImage = (char: {
+    id: string;
+    description: string;
+    personality?: string | null;
+  }) => {
+    if (!char.description.trim()) {
+      toast.error("설명을 먼저 입력해주세요.");
+      return;
+    }
+
+    setGeneratingBackgroundCharacterId(char.id);
+
+    generateBackgroundImageMutate(
+      {
+        description: char.description,
+        personality: char.personality || "",
+      },
+      {
+        onSuccess: (data) => {
+          const backgroundImageDataUrl = `data:image/png;base64,${data.imageBase64}`;
+
+          if (isEditMode) {
+            // 편집 모드: 서버에 저장
+            updateCharacter(
+              { id: char.id, data: { backgroundImage: backgroundImageDataUrl } },
+              {
+                onSuccess: () => {
+                  toast.success("배경 이미지가 저장되었습니다.");
+                  setGeneratingBackgroundCharacterId(null);
+                },
+                onError: () => {
+                  toast.error("배경 이미지 저장에 실패했습니다.");
+                  setGeneratingBackgroundCharacterId(null);
+                },
+              },
+            );
+          } else {
+            // 생성 모드: 로컬 상태 업데이트
+            setCharacters(
+              characters.map((c) =>
+                c.id === char.id ? { ...c, backgroundImage: backgroundImageDataUrl } : c,
+              ),
+            );
+            setGeneratingBackgroundCharacterId(null);
+            toast.success("배경 이미지가 적용되었습니다.");
+          }
+        },
+        onError: () => {
+          toast.error("배경 이미지 생성에 실패했습니다.");
+          setGeneratingBackgroundCharacterId(null);
+        },
+      },
+    );
+  };
+
   return {
     // 상태
     characters,
@@ -337,6 +408,8 @@ export const useStoryCharactersLogic = ({
     isUpdatingCharacter,
     isDeletingCharacter,
     isGeneratingCharacters,
+    isGeneratingBackgroundImage,
+    generatingBackgroundCharacterId,
     imageModalCharacter,
     characterToDelete,
 
@@ -354,6 +427,7 @@ export const useStoryCharactersLogic = ({
     handleCancelAddCharacter,
     handleSaveNewCharacter,
     handleGenerateCharacters,
+    handleGenerateCharacterBackgroundImage,
     handleOpenImageModal,
     handleCloseImageModal,
     handleConfirmImage,
