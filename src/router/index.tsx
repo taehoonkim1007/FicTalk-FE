@@ -35,6 +35,7 @@ const LoginPage = lazy(() => import("@/pages/LoginPage").then((m) => ({ default:
 const AuthCallbackPage = lazy(() =>
   import("@/pages/AuthCallbackPage").then((m) => ({ default: m.AuthCallbackPage })),
 );
+const ChatPage = lazy(() => import("@/pages/chat/ChatPage").then((m) => ({ default: m.ChatPage })));
 
 export const router = createBrowserRouter([
   {
@@ -87,6 +88,10 @@ export const router = createBrowserRouter([
       {
         path: "/stories/:storyId/edit",
         element: withSuspense(StoryFormPage),
+      },
+      {
+        path: "/chat",
+        element: withSuspense(ChatPage),
       },
     ],
   },
