@@ -135,6 +135,17 @@
   }
 }
 
+/* 스크롤바 숨김 유틸리티 */
+@layer utilities {
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE, Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+}
+
 /*
   Tailwind CSS Safelist
   API 응답에서 사용되는 동적 클래스들은 여기에 명시적으로 언급되어야

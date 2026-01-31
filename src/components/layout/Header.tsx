@@ -93,6 +93,7 @@ export const Header = () => {
                   size="sm"
                   variant="ghost"
                   className="mr-2 text-stone-400 hover:text-emerald-400"
+                  onClick={() => void navigate("/chat")}
                 >
                   <MessageSquare className="h-4 w-4 md:mr-1.5" />
                   <span className="hidden md:inline">내 대화</span>
