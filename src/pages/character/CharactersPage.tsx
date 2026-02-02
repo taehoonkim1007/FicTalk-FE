@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/ui/pagination";
 import { useCategoryMeta } from "@/hooks/useCategoryMeta";
 import { useCharacters } from "@/queries/useCharactersQueries";
-import type { CharacterWithStory } from "@/types/story";
+import type { CharacterWithStory } from "@/types/character";
 
 export const CharactersPage = () => {
   const navigate = useNavigate();

@@ -7,7 +7,8 @@ import { EmptyState, ErrorState, LoadingState } from "@/components/common";
 import { StoryCard } from "@/components/story";
 import { useCharacters } from "@/queries/useCharactersQueries";
 import { useStories } from "@/queries/useStoriesQueries";
-import type { CharacterWithStory, Story } from "@/types/story";
+import type { CharacterWithStory } from "@/types/character";
+import type { Story } from "@/types/story";
 
 export const SearchPage = () => {
   const navigate = useNavigate();

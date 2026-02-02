@@ -4,27 +4,20 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { getImageUrl } from "@/lib/image";
 import { cn } from "@/lib/utils";
-import type { CharacterWithStory } from "@/types/story";
+import type { CharacterWithStory } from "@/types/character";
 
 interface CharacterCardProps {
   character: CharacterWithStory;
   categorySlug?: "world-lit" | "korean-lit" | "creative";
   onClick?: () => void;
-  className?: string;
 }
 
-export const CharacterCard = ({
-  character,
-  categorySlug,
-  onClick,
-  className,
-}: CharacterCardProps) => (
+export const CharacterCard = ({ character, categorySlug, onClick }: CharacterCardProps) => (
   <div
     onClick={onClick}
     className={cn(
       "group relative h-42 w-full cursor-pointer overflow-hidden rounded-xl bg-stone-900",
       "transition-all hover:ring-2 hover:ring-emerald-500",
-      className,
     )}
   >
     {/* 배경 이미지 */}

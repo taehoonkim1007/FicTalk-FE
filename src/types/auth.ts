@@ -1,5 +1,5 @@
 // ==========================================
-// User Types (Discriminated Union)
+// Entity
 // ==========================================
 
 /** 게스트 사용자 */
@@ -21,18 +21,6 @@ export interface AuthenticatedUser {
 
 /** 현재 사용자 (Guest | User) */
 export type CurrentUser = GuestUser | AuthenticatedUser;
-
-// ==========================================
-// Type Guards
-// ==========================================
-
-export const isGuestUser = (user: CurrentUser): user is GuestUser => {
-  return user.role === "guest";
-};
-
-export const isAuthenticatedUser = (user: CurrentUser): user is AuthenticatedUser => {
-  return user.role === "user";
-};
 
 // ==========================================
 // API Request DTOs
@@ -66,3 +54,15 @@ export interface LogoutResponse {
 export interface RefreshTokenResponse {
   accessToken: string;
 }
+
+// ==========================================
+// Common
+// ==========================================
+
+export const isGuestUser = (user: CurrentUser): user is GuestUser => {
+  return user.role === "guest";
+};
+
+export const isAuthenticatedUser = (user: CurrentUser): user is AuthenticatedUser => {
+  return user.role === "user";
+};

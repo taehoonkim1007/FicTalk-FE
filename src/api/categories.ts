@@ -1,4 +1,4 @@
-import type { Category } from "@/types/story";
+import type { Category } from "@/types/category";
 
 import { apiClient } from "./client";
 

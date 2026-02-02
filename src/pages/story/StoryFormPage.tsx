@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/messages";
 import { useCreateStory, useStory, useUpdateStory } from "@/queries/useStoriesQueries";
 import { useAuthStore } from "@/stores/useAuthStore";
-import type { CreateCharacterRequest, StoryFormData } from "@/types/story";
+import type { CreateCharacterRequest } from "@/types/character";
+import type { StoryFormData } from "@/types/story";
 
 import { StoryForm } from "./StoryForm";
 

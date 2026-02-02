@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useHeroCarousel } from "@/hooks/useHeroCarousel";
 import { getImageUrl } from "@/lib/image";
 import { getParticle } from "@/lib/utils";
-import type { HeroSlide } from "@/types/story";
+import type { HeroSlide } from "@/types/hero-slide";
 
 interface HeroCarouselProps {
   slides: HeroSlide[];

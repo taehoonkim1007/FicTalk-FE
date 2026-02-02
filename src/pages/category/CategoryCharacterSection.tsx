@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { CharacterCard } from "@/components/character";
 import { EmptyState, LoadingState, SectionHeader } from "@/components/common";
 import { useCharacters } from "@/queries/useCharactersQueries";
-import type { Category, CharacterWithStory } from "@/types/story";
+import type { Category } from "@/types/category";
+import type { CharacterWithStory } from "@/types/character";
 
 interface CategoryCharacterSectionProps {
   category: Category;

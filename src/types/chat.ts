@@ -1,5 +1,7 @@
+import type { VoiceSettings } from "./character";
+
 // ==========================================
-// Chat Character (채팅방 캐릭터)
+// Entity
 // ==========================================
 
 /** 채팅방에 추가된 캐릭터 */
@@ -13,16 +15,14 @@ export interface ChatCharacter {
   imageColor: string;
   personality: string | null;
   firstMessage: string | null;
+  voiceId: string | null;
+  voiceSettings: VoiceSettings | null;
   story: {
     id: string;
     title: string;
     backgroundImage: string | null;
   };
 }
-
-// ==========================================
-// Chat Message (메시지)
-// ==========================================
 
 /** 채팅 메시지 */
 export interface ChatMessage {

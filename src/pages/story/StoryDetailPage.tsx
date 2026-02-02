@@ -21,7 +21,7 @@ import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/messages";
 import { getImageUrl } from "@/lib/image";
 import { useDeleteStory, useStory, useStoryCharacters } from "@/queries/useStoriesQueries";
 import { useAuthStore } from "@/stores/useAuthStore";
-import type { Character } from "@/types/story";
+import type { Character } from "@/types/character";
 
 export const StoryDetailPage = () => {
   const navigate = useNavigate();

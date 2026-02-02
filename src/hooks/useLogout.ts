@@ -19,7 +19,6 @@ export const useLogout = () => {
         void navigate("/");
       },
       onError: () => {
-        // API 실패해도 로컬 상태는 초기화
         actions.clearAuth();
         void navigate("/");
       },

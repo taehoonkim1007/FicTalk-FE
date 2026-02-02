@@ -6,16 +6,14 @@ import type { Story } from "@/types/story";
 interface StoryCardProps {
   story: Story;
   onClick?: () => void;
-  className?: string;
 }
 
-export const StoryCard = ({ story, onClick, className }: StoryCardProps) => (
+export const StoryCard = ({ story, onClick }: StoryCardProps) => (
   <div
     onClick={onClick}
     className={cn(
       "group relative aspect-[2/3] w-full cursor-pointer overflow-hidden rounded-xl bg-stone-900",
       "transition-all hover:ring-2 hover:ring-emerald-500",
-      className,
     )}
   >
     {/* 배경 이미지 */}

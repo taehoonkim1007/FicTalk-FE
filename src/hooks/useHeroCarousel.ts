@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { HERO_CAROUSEL } from "@/constants/ui";
-import type { HeroSlide } from "@/types/story";
+import type { HeroSlide } from "@/types/hero-slide";
 
 export const useHeroCarousel = (slides: HeroSlide[]) => {
   const navigate = useNavigate();
