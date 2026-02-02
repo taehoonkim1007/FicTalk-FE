@@ -75,7 +75,6 @@ apiClient.interceptors.response.use(
 
     // 401 에러 처리
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
-      // 이미 갱신 중이면 대기
       if (isRefreshing) {
         return new Promise((resolve) => {
           addRefreshSubscriber((token) => {
@@ -89,14 +88,12 @@ apiClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // 순수 axios로 토큰 갱신 (interceptor 우회)
         const { data } = await refreshClient.post<RefreshTokenResponse>("/auth/refresh");
         const { accessToken } = data;
 
         useAuthStore.getState().actions.setAccessToken(accessToken);
         onRefreshed(accessToken);
 
-        // 원래 요청 재시도
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return apiClient(originalRequest);
       } catch {
@@ -108,7 +105,6 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // 기타 에러 처리
     if (error.response) {
       const { status } = error.response;
 
