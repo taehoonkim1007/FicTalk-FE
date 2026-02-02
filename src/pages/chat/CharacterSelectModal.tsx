@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { getImageUrl } from "@/lib/image";
 import { useCharacters } from "@/queries/useCharactersQueries";
-import type { CharacterWithStory } from "@/types/story";
+import type { CharacterWithStory } from "@/types/character";
 
 interface CharacterSelectModalProps {
   open: boolean;

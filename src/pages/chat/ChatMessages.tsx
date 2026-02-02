@@ -1,20 +1,25 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { Loader2 } from "lucide-react";
+import { Loader2, Volume2 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getImageUrl } from "@/lib/image";
-import { getSubjectParticle } from "@/lib/utils";
+import { cn, getSubjectParticle } from "@/lib/utils";
 import type { ChatCharacter, ChatMessage } from "@/types/chat";
+
+import type { ChatMode } from "./ChatHeader";
 
 interface ChatMessagesProps {
   messages: ChatMessage[];
   character: ChatCharacter;
+  chatMode: ChatMode;
   isLoading: boolean;
   hasNextPage: boolean | undefined;
   isFetchingNextPage: boolean;
   onLoadMore: () => void;
   isSending: boolean;
+  isTTSLoading: boolean;
+  isAudioPlaying: boolean;
 }
 
 interface BgPosition {
@@ -27,11 +32,14 @@ interface BgPosition {
 export const ChatMessages = ({
   messages,
   character,
+  chatMode,
   isLoading,
   hasNextPage,
   isFetchingNextPage,
   onLoadMore,
   isSending,
+  isTTSLoading,
+  isAudioPlaying,
 }: ChatMessagesProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -53,10 +61,13 @@ export const ChatMessages = ({
 
   // 초기 및 리사이즈 시 배경 위치 업데이트
   useEffect(() => {
-    updateBgPosition();
+    if (!isLoading) {
+      // DOM 렌더링 후 다음 프레임에서 위치 계산
+      requestAnimationFrame(updateBgPosition);
+    }
     window.addEventListener("resize", updateBgPosition);
     return () => window.removeEventListener("resize", updateBgPosition);
-  }, [updateBgPosition]);
+  }, [updateBgPosition, isLoading]);
 
   // 새 메시지 시 자동 스크롤
   useEffect(() => {
@@ -124,17 +135,35 @@ export const ChatMessages = ({
         {/* 시스템 안내 메시지 */}
         {character.firstMessage && (
           <div className="mb-6 flex justify-center">
-            <div className="rounded-full border border-emerald-500 bg-stone-900 px-4 py-2">
-              <p className="text-xs text-stone-400">
-                <span className="text-emerald-500">FicTalk AI</span>가 캐릭터를 완벽하게 재현합니다
-              </p>
+            <div
+              className={cn(
+                "rounded-full border px-4 py-2 text-xs shadow-sm backdrop-blur transition-colors",
+                chatMode === "voice"
+                  ? "border-violet-500/30 bg-violet-900/20 text-violet-300"
+                  : "border-stone-800 bg-stone-900/80 text-stone-400",
+              )}
+            >
+              <span
+                className={cn(
+                  "font-bold",
+                  chatMode === "voice" ? "text-violet-400" : "text-emerald-500",
+                )}
+              >
+                FicTalk AI
+              </span>
+              가 캐릭터를 완벽하게 재현합니다
             </div>
           </div>
         )}
 
         {/* 첫 인사말 (항상 표시) */}
         {character.firstMessage && (
-          <MessageBubble role="assistant" content={character.firstMessage} character={character} />
+          <MessageBubble
+            role="assistant"
+            content={character.firstMessage}
+            character={character}
+            chatMode={chatMode}
+          />
         )}
 
         {/* 메시지 목록 */}
@@ -144,6 +173,7 @@ export const ChatMessages = ({
             role={message.role}
             content={message.content}
             character={character}
+            chatMode={chatMode}
           />
         ))}
 
@@ -168,6 +198,22 @@ export const ChatMessages = ({
           </div>
         )}
 
+        {/* TTS 재생 상태 표시 */}
+        {chatMode === "voice" && (isTTSLoading || isAudioPlaying) && (
+          <div className="mb-4 flex justify-center">
+            <div className="flex items-center gap-2 rounded-full border border-violet-500/50 bg-stone-900 px-4 py-2">
+              {isTTSLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin text-violet-500" />
+              ) : (
+                <Volume2 className="h-4 w-4 animate-pulse text-violet-500" />
+              )}
+              <span className="text-xs text-stone-400">
+                {isTTSLoading ? "음성 생성 중..." : "재생 중..."}
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* 스크롤 앵커 */}
         <div ref={bottomRef} />
       </div>
@@ -180,9 +226,10 @@ interface MessageBubbleProps {
   role: "user" | "assistant";
   content: string;
   character: ChatCharacter;
+  chatMode: ChatMode;
 }
 
-const MessageBubble = ({ role, content, character }: MessageBubbleProps) => {
+const MessageBubble = ({ role, content, character, chatMode }: MessageBubbleProps) => {
   const isUser = role === "user";
 
   return (
@@ -201,9 +248,14 @@ const MessageBubble = ({ role, content, character }: MessageBubbleProps) => {
 
       {/* 메시지 내용 */}
       <div
-        className={`max-w-[75%] rounded-2xl px-4 py-3 ${
-          isUser ? "bg-emerald-500 text-black" : "bg-stone-800 text-stone-200"
-        }`}
+        className={cn(
+          "max-w-[75%] rounded-2xl px-4 py-3",
+          isUser
+            ? chatMode === "voice"
+              ? "bg-violet-500 text-white"
+              : "bg-emerald-500 text-black"
+            : "bg-stone-800 text-stone-200",
+        )}
       >
         <p className="text-sm break-words whitespace-pre-wrap">{content}</p>
       </div>

@@ -3,14 +3,18 @@ import { useEffect, useRef, useState } from "react";
 import { Loader2, Play } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+import type { ChatMode } from "./ChatHeader";
 
 interface ChatInputProps {
   onSend: (content: string) => void;
   isSending: boolean;
   isError: boolean;
+  chatMode: ChatMode;
 }
 
-export const ChatInput = ({ onSend, isSending, isError }: ChatInputProps) => {
+export const ChatInput = ({ onSend, isSending, isError, chatMode }: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lastSentMessage = useRef<string>("");
@@ -73,7 +77,12 @@ export const ChatInput = ({ onSend, isSending, isError }: ChatInputProps) => {
           type="submit"
           size="icon"
           disabled={!message.trim() || isSending}
-          className="h-9 w-9 shrink-0 rounded-full bg-emerald-500 text-black hover:bg-emerald-400 disabled:opacity-50"
+          className={cn(
+            "h-9 w-9 shrink-0 rounded-full text-black disabled:opacity-50",
+            chatMode === "voice"
+              ? "bg-violet-500 hover:bg-violet-400"
+              : "bg-emerald-500 hover:bg-emerald-400",
+          )}
         >
           {isSending ? (
             <Loader2 className="h-4 w-4 animate-spin" />

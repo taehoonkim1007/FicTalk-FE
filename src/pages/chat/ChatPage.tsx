@@ -4,9 +4,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, MessageSquarePlus } from "lucide-react";
 import { toast } from "sonner";
 
+import { generateTTSSample } from "@/api/stories";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingState } from "@/components/common/LoadingState";
 import { Button } from "@/components/ui/button";
+import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import {
   useAddChatCharacter,
   useChatCharacters,
@@ -18,7 +20,7 @@ import {
 import type { ChatCharacter } from "@/types/chat";
 
 import { CharacterSelectModal } from "./CharacterSelectModal";
-import { ChatHeader } from "./ChatHeader";
+import { ChatHeader, type ChatMode } from "./ChatHeader";
 import { ChatInput } from "./ChatInput";
 import { ChatMessages } from "./ChatMessages";
 import { ChatSidebar } from "./ChatSidebar";
@@ -38,6 +40,11 @@ export const ChatPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   // 이미 처리한 characterId 추적 (중복 추가 방지)
   const [processedCharacterId, setProcessedCharacterId] = useState<string | null>(null);
+  // 채팅 모드 (text/voice)
+  const [chatMode, setChatMode] = useState<ChatMode>("text");
+
+  // 오디오 플레이어
+  const { playAudio, isPlaying: isAudioPlaying, isLoading: isTTSLoading } = useAudioPlayer();
 
   // 채팅 캐릭터 목록 조회
   const { data: charactersData, isLoading: isCharactersLoading, isFetching } = useChatCharacters();
@@ -92,7 +99,7 @@ export const ChatPage = () => {
     }
   }, [state?.characterId, characters, isCharactersLoading, processedCharacterId, addCharacter]);
 
-  // 선택된 캐릭터가 목록에 없으면 초기화, 없으면 첫 번째 캐릭터 선택
+  // 선택된 캐릭터가 목록에 없으면 초기화, 있으면 최신 데이터로 갱신
   useEffect(() => {
     // 캐릭터 목록을 가져오는 중이면 스킵 (레이스 컨디션 방지)
     if (isFetching) return;
@@ -103,6 +110,9 @@ export const ChatPage = () => {
       if (!exists) {
         // 목록에 없으면 첫 번째 캐릭터 선택 또는 null (비동기로 처리)
         queueMicrotask(() => setSelectedCharacter(characters[0] || null));
+      } else if (exists !== selectedCharacter) {
+        // 목록에 있으면 최신 데이터로 갱신 (voiceId 등 새로운 필드 반영)
+        queueMicrotask(() => setSelectedCharacter(exists));
       }
     } else if (characters.length > 0) {
       // 선택된 캐릭터가 없고 목록이 있으면 첫 번째 선택 (비동기로 처리)
@@ -150,7 +160,27 @@ export const ChatPage = () => {
 
   // 메시지 전송
   const handleSendMessage = (content: string) => {
-    sendMessage.mutate({ content });
+    sendMessage.mutate(
+      { content },
+      {
+        onSuccess: (response) => {
+          // Voice 모드일 때 AI 응답 TTS 재생
+          if (chatMode === "voice" && selectedCharacter?.voiceId) {
+            generateTTSSample({
+              voiceId: selectedCharacter.voiceId,
+              text: response.aiMessage.content,
+              voiceSettings: selectedCharacter.voiceSettings || undefined,
+            })
+              .then((ttsResponse) => {
+                playAudio(ttsResponse.audioBase64);
+              })
+              .catch(() => {
+                // TTS 실패 시 조용히 처리
+              });
+          }
+        },
+      },
+    );
   };
 
   // 대화 초기화
@@ -189,6 +219,8 @@ export const ChatPage = () => {
             {/* 헤더 */}
             <ChatHeader
               character={selectedCharacter}
+              chatMode={chatMode}
+              onModeChange={setChatMode}
               onBack={handleBack}
               onReset={handleResetMessages}
               isResetting={resetMessages.isPending}
@@ -198,11 +230,14 @@ export const ChatPage = () => {
             <ChatMessages
               messages={messages}
               character={selectedCharacter}
+              chatMode={chatMode}
               isLoading={isMessagesLoading}
               hasNextPage={hasNextPage}
               isFetchingNextPage={isFetchingNextPage}
               onLoadMore={() => void fetchNextPage()}
               isSending={sendMessage.isPending}
+              isTTSLoading={isTTSLoading}
+              isAudioPlaying={isAudioPlaying}
             />
 
             {/* 입력창 */}
@@ -210,6 +245,7 @@ export const ChatPage = () => {
               onSend={handleSendMessage}
               isSending={sendMessage.isPending}
               isError={sendMessage.isError}
+              chatMode={chatMode}
             />
           </>
         ) : (

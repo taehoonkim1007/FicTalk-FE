@@ -69,10 +69,17 @@ export const ChatSidebar = ({
           <ul className="space-y-1">
             {characters.map((character) => (
               <li key={character.id}>
-                <button
-                  type="button"
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => onSelectCharacter(character)}
-                  className={`group relative flex h-36 w-full items-center gap-4 overflow-hidden rounded-lg p-4 text-left transition-colors ${
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      onSelectCharacter(character);
+                    }
+                  }}
+                  className={`group relative flex h-36 w-full cursor-pointer items-center gap-4 overflow-hidden rounded-lg p-4 text-left transition-colors ${
                     selectedCharacterId === character.id
                       ? "bg-stone-800 ring-2 ring-emerald-500"
                       : "hover:bg-stone-800/50"
@@ -142,7 +149,7 @@ export const ChatSidebar = ({
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
-                </button>
+                </div>
               </li>
             ))}
           </ul>
