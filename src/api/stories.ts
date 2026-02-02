@@ -1,20 +1,26 @@
 import type {
   CharactersListResponse,
+  GenerateCharacterBackgroundImageRequest,
+  GenerateCharacterBackgroundImageResponse,
+  GenerateProfileImageRequest,
+  GenerateProfileImageResponse,
+  GetVoiceIdRequest,
+  GetVoiceIdResponse,
+  TTSSampleRequest,
+  TTSSampleResponse,
+} from "@/types/character";
+import type { HeroSlide } from "@/types/hero-slide";
+import type {
   CreateStoryRequest,
   GenerateBackgroundImageRequest,
   GenerateBackgroundImageResponse,
-  GenerateCharacterBackgroundImageRequest,
-  GenerateCharacterBackgroundImageResponse,
   GenerateCharactersRequest,
   GenerateCharactersResponse,
   GenerateCoverImageRequest,
   GenerateCoverImageResponse,
-  GenerateProfileImageRequest,
-  GenerateProfileImageResponse,
   GenerateSummaryRequest,
   GenerateSummaryResponse,
   GetStoriesParams,
-  HeroSlide,
   StoriesListResponse,
   Story,
   StoryDetail,
@@ -22,6 +28,10 @@ import type {
 } from "@/types/story";
 
 import { apiClient } from "./client";
+
+// ==========================================
+// Story CRUD
+// ==========================================
 
 /**
  * 히어로 슬라이드 목록 조회
@@ -167,5 +177,23 @@ export const generateCharacterBackgroundImage = async (
     data,
     { timeout: 180000 },
   );
+  return response.data;
+};
+
+/**
+ * 캐릭터 Voice ID 조회
+ */
+export const getVoiceId = async (data: GetVoiceIdRequest): Promise<GetVoiceIdResponse> => {
+  const response = await apiClient.post<GetVoiceIdResponse>("/stories/generate/voice-id", data);
+  return response.data;
+};
+
+/**
+ * TTS 샘플 음성 생성
+ */
+export const generateTTSSample = async (data: TTSSampleRequest): Promise<TTSSampleResponse> => {
+  const response = await apiClient.post<TTSSampleResponse>("/stories/generate/tts-sample", data, {
+    timeout: 60000, // TTS 생성은 시간이 걸릴 수 있음
+  });
   return response.data;
 };

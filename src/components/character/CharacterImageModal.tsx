@@ -24,7 +24,7 @@ interface CharacterImageModalProps {
     description: string;
     personality: string | null;
   };
-  onConfirm: (imageBase64: string) => void;
+  onConfirm: (imageBase64: string) => void | Promise<void>;
 }
 
 export const CharacterImageModal = ({
@@ -89,7 +89,7 @@ export const CharacterImageModal = ({
   // 확인 버튼 클릭
   const handleConfirm = () => {
     if (generatedImage) {
-      onConfirm(generatedImage);
+      void onConfirm(generatedImage);
       onClose();
     }
   };

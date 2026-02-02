@@ -9,11 +9,13 @@ import {
   generateCoverImage,
   generateProfileImage,
   generateSummary,
+  generateTTSSample,
   getHeroSlides,
   getMyStories,
   getStories,
   getStoryById,
   getStoryCharacters,
+  getVoiceId,
   updateStory,
 } from "@/api/stories";
 import type { CreateStoryRequest, GetStoriesParams, UpdateStoryRequest } from "@/types/story";
@@ -203,5 +205,23 @@ export const useGenerateBackgroundImage = () => {
 export const useGenerateCharacterBackgroundImage = () => {
   return useMutation({
     mutationFn: generateCharacterBackgroundImage,
+  });
+};
+
+/**
+ * Voice ID 조회
+ */
+export const useGetVoiceId = () => {
+  return useMutation({
+    mutationFn: getVoiceId,
+  });
+};
+
+/**
+ * TTS 샘플 음성 생성
+ */
+export const useGenerateTTSSample = () => {
+  return useMutation({
+    mutationFn: generateTTSSample,
   });
 };

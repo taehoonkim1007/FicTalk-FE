@@ -2,7 +2,11 @@ import { useState } from "react";
 
 import { Loader2, Plus, Sparkles, Users } from "lucide-react";
 
-import { CharacterFormCard, CharacterImageModal } from "@/components/character";
+import {
+  CharacterFormCard,
+  CharacterImageModal,
+  CharacterVoiceModal,
+} from "@/components/character";
 import { EmptyState } from "@/components/common";
 import {
   AlertDialog,
@@ -19,7 +23,7 @@ import type {
   CharacterDetail,
   CreateCharacterRequest,
   UpdateCharacterRequest,
-} from "@/types/story";
+} from "@/types/character";
 
 interface CharactersSectionProps {
   isEditMode: boolean;
@@ -47,6 +51,14 @@ interface CharactersSectionProps {
     personality: string;
   } | null;
   characterToDelete: string | null;
+  voicePreviewModal: {
+    characterId: string;
+    characterName: string;
+    voiceId: string;
+    voiceName: string;
+    audioBase64: string | null;
+  } | null;
+  generatingVoiceCharacterId: string | null;
   handleAddCharacter: () => void;
   handleRemoveCharacter: (id: string) => void;
   handleCharacterChange: (
@@ -56,21 +68,21 @@ interface CharactersSectionProps {
   ) => void;
   handleStartEditCharacter: (char: CharacterDetail) => void;
   handleCancelEditCharacter: () => void;
-  handleSaveCharacter: (id: string) => void;
-  handleDeleteCharacter: (id: string) => void;
-  handleConfirmDeleteCharacter: () => void;
+  handleSaveCharacter: (id: string) => void | Promise<void>;
+  handleDeleteCharacter: (id: string) => void | Promise<void>;
+  handleConfirmDeleteCharacter: () => void | Promise<void>;
   handleCancelDeleteCharacter: () => void;
   handleOpenAddCharacter: () => void;
   handleCancelAddCharacter: () => void;
-  handleSaveNewCharacter: () => void;
-  handleGenerateCharacters: () => void;
+  handleSaveNewCharacter: () => void | Promise<void>;
+  handleGenerateCharacters: () => void | Promise<void>;
   handleGenerateCharacterBackgroundImage: (char: {
     id: string;
     name: string;
     role: string;
     description: string;
     personality?: string | null;
-  }) => void;
+  }) => void | Promise<void>;
   handleOpenImageModal: (char: {
     id: string;
     name: string;
@@ -79,7 +91,16 @@ interface CharactersSectionProps {
     personality?: string | null;
   }) => void;
   handleCloseImageModal: () => void;
-  handleConfirmImage: (imageBase64: string) => void;
+  handleConfirmImage: (imageBase64: string) => void | Promise<void>;
+  handleGenerateVoice: (char: {
+    id: string;
+    name: string;
+    description: string;
+    personality?: string | null;
+    firstMessage?: string | null;
+  }) => void | Promise<void>;
+  handleCloseVoicePreviewModal: () => void;
+  handleConfirmVoice: () => void | Promise<void>;
 }
 
 export const CharactersSection = ({
@@ -102,6 +123,8 @@ export const CharactersSection = ({
   storyBackgroundImage,
   imageModalCharacter,
   characterToDelete,
+  voicePreviewModal,
+  generatingVoiceCharacterId,
   handleAddCharacter,
   handleRemoveCharacter,
   handleCharacterChange,
@@ -119,6 +142,9 @@ export const CharactersSection = ({
   handleOpenImageModal,
   handleCloseImageModal,
   handleConfirmImage,
+  handleGenerateVoice,
+  handleCloseVoicePreviewModal,
+  handleConfirmVoice,
 }: CharactersSectionProps) => {
   const displayCharacters = isEditMode ? existingCharacters : characters;
 
@@ -147,7 +173,7 @@ export const CharactersSection = ({
               type="button"
               variant="outline"
               size="sm"
-              onClick={handleGenerateCharacters}
+              onClick={() => void handleGenerateCharacters()}
               disabled={isGeneratingCharacters || !canGenerateCharacters}
               className="border-emerald-700 bg-transparent text-emerald-400 hover:bg-emerald-900/50 hover:text-emerald-300"
             >
@@ -175,7 +201,7 @@ export const CharactersSection = ({
       {/* 새 캐릭터 추가 폼 (편집 모드) */}
       {isEditMode && isAddingCharacter && (
         <CharacterFormCard
-          isEditing
+          mode="edit-save"
           name={newCharacterData.name || ""}
           role={newCharacterData.role || ""}
           description={newCharacterData.description || ""}
@@ -184,6 +210,7 @@ export const CharactersSection = ({
           profileImage={newCharacterData.profileImage}
           backgroundImage={newCharacterData.backgroundImage}
           backgroundColor={newCharacterData.backgroundColor}
+          voiceId={newCharacterData.voiceId}
           onNameChange={(v) => setNewCharacterData({ ...newCharacterData, name: v })}
           onRoleChange={(v) => setNewCharacterData({ ...newCharacterData, role: v })}
           onDescriptionChange={(v) => setNewCharacterData({ ...newCharacterData, description: v })}
@@ -197,6 +224,15 @@ export const CharactersSection = ({
           onBackgroundImageChange={(v) =>
             setNewCharacterData({ ...newCharacterData, backgroundImage: v })
           }
+          onGenerateImage={() =>
+            handleOpenImageModal({
+              id: newCharacterData.id || "",
+              name: newCharacterData.name,
+              role: newCharacterData.role,
+              description: newCharacterData.description,
+              personality: newCharacterData.personality || "",
+            })
+          }
           onGenerateBackgroundImage={() =>
             handleGenerateCharacterBackgroundImage({
               id: newCharacterData.id || "",
@@ -209,6 +245,16 @@ export const CharactersSection = ({
           isGeneratingBackgroundImage={
             isGeneratingBackgroundImage && generatingBackgroundCharacterId === newCharacterData.id
           }
+          onGenerateVoice={() =>
+            handleGenerateVoice({
+              id: newCharacterData.id || "",
+              name: newCharacterData.name,
+              description: newCharacterData.description,
+              personality: newCharacterData.personality,
+              firstMessage: newCharacterData.firstMessage,
+            })
+          }
+          isGeneratingVoice={generatingVoiceCharacterId === newCharacterData.id}
           storyBackgroundImage={storyBackgroundImage}
           useStoryBackground={useStoryBackgroundMap[newCharacterData.id || "new"] || false}
           onUseStoryBackgroundChange={(checked) => {
@@ -241,7 +287,7 @@ export const CharactersSection = ({
                 editingCharacterId === char.id ? (
                   <CharacterFormCard
                     key={char.id}
-                    isEditing
+                    mode="edit-save"
                     name={editingCharacterData.name || ""}
                     role={editingCharacterData.role || ""}
                     description={editingCharacterData.description || ""}
@@ -250,6 +296,7 @@ export const CharactersSection = ({
                     profileImage={editingCharacterData.profileImage ?? null}
                     backgroundImage={editingCharacterData.backgroundImage ?? null}
                     backgroundColor={editingCharacterData.backgroundColor ?? null}
+                    voiceId={editingCharacterData.voiceId}
                     onNameChange={(v) =>
                       setEditingCharacterData({ ...editingCharacterData, name: v })
                     }
@@ -271,6 +318,15 @@ export const CharactersSection = ({
                     onBackgroundImageChange={(v) =>
                       setEditingCharacterData({ ...editingCharacterData, backgroundImage: v })
                     }
+                    onGenerateImage={() =>
+                      handleOpenImageModal({
+                        id: char.id,
+                        name: editingCharacterData.name || "",
+                        role: editingCharacterData.role || "",
+                        description: editingCharacterData.description || "",
+                        personality: editingCharacterData.personality || "",
+                      })
+                    }
                     onGenerateBackgroundImage={() =>
                       handleGenerateCharacterBackgroundImage({
                         id: char.id,
@@ -283,6 +339,16 @@ export const CharactersSection = ({
                     isGeneratingBackgroundImage={
                       isGeneratingBackgroundImage && generatingBackgroundCharacterId === char.id
                     }
+                    onGenerateVoice={() =>
+                      handleGenerateVoice({
+                        id: char.id,
+                        name: editingCharacterData.name || "",
+                        description: editingCharacterData.description || "",
+                        personality: editingCharacterData.personality,
+                        firstMessage: editingCharacterData.firstMessage,
+                      })
+                    }
+                    isGeneratingVoice={generatingVoiceCharacterId === char.id}
                     storyBackgroundImage={storyBackgroundImage}
                     useStoryBackground={useStoryBackgroundMap[char.id] || false}
                     onUseStoryBackgroundChange={(checked) => {
@@ -301,6 +367,7 @@ export const CharactersSection = ({
                 ) : (
                   <CharacterFormCard
                     key={char.id}
+                    mode="view"
                     name={char.name}
                     role={char.role}
                     description={char.description}
@@ -309,11 +376,22 @@ export const CharactersSection = ({
                     profileImage={char.profileImage}
                     backgroundImage={char.backgroundImage}
                     backgroundColor={char.backgroundColor}
+                    voiceId={char.voiceId ?? undefined}
                     storyBackgroundImage={storyBackgroundImage}
                     useStoryBackground={useStoryBackgroundMap[char.id] || false}
                     onEdit={() => handleStartEditCharacter(char)}
                     onDelete={() => handleDeleteCharacter(char.id)}
                     onGenerateImage={() => handleOpenImageModal(char)}
+                    onGenerateVoice={() =>
+                      handleGenerateVoice({
+                        id: char.id,
+                        name: char.name,
+                        description: char.description,
+                        personality: char.personality,
+                        firstMessage: char.firstMessage,
+                      })
+                    }
+                    isGeneratingVoice={generatingVoiceCharacterId === char.id}
                     isDeleting={isDeletingCharacter}
                   />
                 ),
@@ -321,7 +399,7 @@ export const CharactersSection = ({
             : characters.map((char) => (
                 <CharacterFormCard
                   key={char.id}
-                  isEditing
+                  mode="edit-delete"
                   name={char.name}
                   role={char.role}
                   description={char.description}
@@ -330,6 +408,7 @@ export const CharactersSection = ({
                   profileImage={char.profileImage}
                   backgroundImage={char.backgroundImage}
                   backgroundColor={char.backgroundColor}
+                  voiceId={char.voiceId}
                   onNameChange={(v) => handleCharacterChange(char.id, "name", v)}
                   onRoleChange={(v) => handleCharacterChange(char.id, "role", v)}
                   onDescriptionChange={(v) => handleCharacterChange(char.id, "description", v)}
@@ -339,6 +418,7 @@ export const CharactersSection = ({
                   onBackgroundImageChange={(v) =>
                     handleCharacterChange(char.id, "backgroundImage", v)
                   }
+                  onGenerateImage={() => handleOpenImageModal(char)}
                   onGenerateBackgroundImage={() =>
                     handleGenerateCharacterBackgroundImage({
                       id: char.id,
@@ -351,13 +431,22 @@ export const CharactersSection = ({
                   isGeneratingBackgroundImage={
                     isGeneratingBackgroundImage && generatingBackgroundCharacterId === char.id
                   }
+                  onGenerateVoice={() =>
+                    handleGenerateVoice({
+                      id: char.id,
+                      name: char.name,
+                      description: char.description,
+                      personality: char.personality,
+                      firstMessage: char.firstMessage,
+                    })
+                  }
+                  isGeneratingVoice={generatingVoiceCharacterId === char.id}
                   storyBackgroundImage={storyBackgroundImage}
                   useStoryBackground={useStoryBackgroundMap[char.id] || false}
                   onUseStoryBackgroundChange={(checked) =>
                     handleUseStoryBackgroundChange(char.id, checked)
                   }
                   onDelete={() => handleRemoveCharacter(char.id)}
-                  onGenerateImage={() => handleOpenImageModal(char)}
                 />
               ))}
         </div>
@@ -384,10 +473,22 @@ export const CharactersSection = ({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleCancelDeleteCharacter}>취소</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDeleteCharacter}>삭제</AlertDialogAction>
+            <AlertDialogAction onClick={() => void handleConfirmDeleteCharacter()}>
+              삭제
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* 음성 미리듣기 모달 */}
+      <CharacterVoiceModal
+        isOpen={!!voicePreviewModal}
+        onClose={handleCloseVoicePreviewModal}
+        voiceName={voicePreviewModal?.voiceName ?? ""}
+        audioBase64={voicePreviewModal?.audioBase64 ?? null}
+        onConfirm={handleConfirmVoice}
+        isConfirming={isUpdatingCharacter}
+      />
     </div>
   );
 };

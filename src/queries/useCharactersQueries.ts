@@ -11,7 +11,7 @@ import type {
   CreateCharacterRequest,
   GetCharactersParams,
   UpdateCharacterRequest,
-} from "@/types/story";
+} from "@/types/character";
 
 import { storiesKeys } from "./useStoriesQueries";
 

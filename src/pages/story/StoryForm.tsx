@@ -62,6 +62,8 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
     generatingBackgroundCharacterId,
     imageModalCharacter,
     characterToDelete,
+    voicePreviewModal,
+    generatingVoiceCharacterId,
     handleAddCharacter,
     handleRemoveCharacter,
     handleCharacterChange,
@@ -79,6 +81,9 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
     handleOpenImageModal,
     handleCloseImageModal,
     handleConfirmImage,
+    handleGenerateVoice,
+    handleCloseVoicePreviewModal,
+    handleConfirmVoice,
   } = useStoryCharactersLogic({
     storyId,
     isEditMode,
@@ -163,6 +168,8 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
             storyBackgroundImage={backgroundImage}
             imageModalCharacter={imageModalCharacter}
             characterToDelete={characterToDelete}
+            voicePreviewModal={voicePreviewModal}
+            generatingVoiceCharacterId={generatingVoiceCharacterId}
             handleAddCharacter={handleAddCharacter}
             handleRemoveCharacter={handleRemoveCharacter}
             handleCharacterChange={handleCharacterChange}
@@ -180,6 +187,9 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
             handleOpenImageModal={handleOpenImageModal}
             handleCloseImageModal={handleCloseImageModal}
             handleConfirmImage={handleConfirmImage}
+            handleGenerateVoice={handleGenerateVoice}
+            handleCloseVoicePreviewModal={handleCloseVoicePreviewModal}
+            handleConfirmVoice={handleConfirmVoice}
           />
         </TabsContent>
       </Tabs>

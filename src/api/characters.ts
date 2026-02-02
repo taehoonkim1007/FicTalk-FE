@@ -5,7 +5,7 @@ import type {
   CreateCharacterRequest,
   GetCharactersParams,
   UpdateCharacterRequest,
-} from "@/types/story";
+} from "@/types/character";
 
 import { apiClient } from "./client";
 
