@@ -5,29 +5,41 @@ import { ArrowLeft, BookOpen, MessageCircle } from "lucide-react";
 import { ErrorState, LoadingState } from "@/components/common";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { useStartChat } from "@/hooks/useStartChat";
 import { getImageUrl } from "@/lib/image";
 import { getParticle } from "@/lib/utils";
 import { useCharacter } from "@/queries/useCharactersQueries";
 
 export const CharacterDetailPage = () => {
+  // ==========================================
+  // 외부 훅
+  // ==========================================
   const navigate = useNavigate();
   const { characterId } = useParams<{ characterId: string }>();
+  const { startChat } = useStartChat();
 
+  // ==========================================
+  // 서버 상태 (React Query)
+  // ==========================================
   const { data: character, isLoading, isError } = useCharacter(characterId || "");
 
+  // ==========================================
+  // 핸들러
+  // ==========================================
+  // 채팅 시작
   const handleStartChat = () => {
     if (!character) return;
-    void navigate("/chat", {
-      state: {
-        storyId: character.story.id,
-        storyTitle: character.story.title,
-        characterId: character.id,
-        characterName: character.name,
-        firstMessage: character.firstMessage,
-      },
+
+    void startChat({
+      storyId: character.story.id,
+      storyTitle: character.story.title,
+      characterId: character.id,
+      characterName: character.name,
+      firstMessage: character.firstMessage,
     });
   };
 
+  // 스토리 상세 페이지로 이동
   const handleGoToStory = () => {
     if (!character) return;
     void navigate(`/stories/${character.story.id}`);

@@ -23,33 +23,54 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import type { Story } from "@/types/story";
 
 export const MyStoriesPage = () => {
+  // ==========================================
+  // 로컬 상태
+  // ==========================================
+  // 삭제 확인 다이얼로그 열림 상태
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  // 삭제 대상 스토리 ID
+  const [storyToDelete, setStoryToDelete] = useState<string | null>(null);
+
+  // ==========================================
+  // 외부 훅
+  // ==========================================
   const navigate = useNavigate();
+
+  // ==========================================
+  // 외부 상태 (Store)
+  // ==========================================
   const { isAuthenticated } = useAuthStore();
 
+  // ==========================================
+  // 서버 상태 (React Query)
+  // ==========================================
   const { data: stories = [], isLoading, isError } = useMyStories(isAuthenticated);
   const { mutate: deleteStory, isPending: isDeleting } = useDeleteStory();
 
-  // 삭제 확인 다이얼로그 상태
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [storyToDelete, setStoryToDelete] = useState<string | null>(null);
-
+  // ==========================================
+  // 핸들러
+  // ==========================================
+  // 스토리 선택
   const handleStorySelect = (story: Story) => {
     void navigate(`/stories/${story.id}`, {
       state: { from: "/my-stories" },
     });
   };
 
+  // 스토리 수정
   const handleEditStory = (e: MouseEvent, storyId: string) => {
     e.stopPropagation();
     void navigate(`/stories/${storyId}/edit`);
   };
 
+  // 삭제 버튼 클릭
   const handleDeleteClick = (e: MouseEvent, storyId: string) => {
     e.stopPropagation();
     setStoryToDelete(storyId);
     setDeleteDialogOpen(true);
   };
 
+  // 삭제 확인
   const handleConfirmDelete = () => {
     if (!storyToDelete) return;
 

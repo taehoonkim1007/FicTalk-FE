@@ -8,16 +8,20 @@ import { Logo } from "@/components/ui/logo";
 import { useLogout } from "@/hooks/useLogout";
 import { useCategories } from "@/queries/useCategoriesQueries";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { isGuestUser } from "@/types/auth";
 
 export const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const { logout, isLoggingOut } = useLogout();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: categories = [] } = useCategories();
+
+  // 게스트 여부
+  const isGuest = user && isGuestUser(user);
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -78,27 +82,30 @@ export const Header = () => {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* 일반 유저만: 내 스토리 */}
+            {isAuthenticated && !isGuest && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-stone-400 hover:text-blue-400"
+                onClick={() => void navigate("/my-stories")}
+              >
+                <BookOpen className="h-4 w-4 md:mr-1.5" />
+                <span className="hidden md:inline">내 스토리</span>
+              </Button>
+            )}
+
+            {/* 모든 인증 유저: 내 대화 */}
             {isAuthenticated && (
-              <>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-stone-400 hover:text-blue-400"
-                  onClick={() => void navigate("/my-stories")}
-                >
-                  <BookOpen className="h-4 w-4 md:mr-1.5" />
-                  <span className="hidden md:inline">내 스토리</span>
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="mr-2 text-stone-400 hover:text-emerald-400"
-                  onClick={() => void navigate("/chat")}
-                >
-                  <MessageSquare className="h-4 w-4 md:mr-1.5" />
-                  <span className="hidden md:inline">내 대화</span>
-                </Button>
-              </>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="mr-2 text-stone-400 hover:text-emerald-400"
+                onClick={() => void navigate("/chat")}
+              >
+                <MessageSquare className="h-4 w-4 md:mr-1.5" />
+                <span className="hidden md:inline">내 대화</span>
+              </Button>
             )}
 
             <form onSubmit={handleSearch} className="relative hidden md:flex">
@@ -120,7 +127,16 @@ export const Header = () => {
               <Search className="h-5 w-5" />
             </Button>
 
-            {isAuthenticated ? (
+            {/* 게스트: 로그인 버튼 */}
+            {isGuest && (
+              <Button size="sm" variant="white" onClick={() => void navigate("/login")}>
+                <LogIn className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">로그인</span>
+              </Button>
+            )}
+
+            {/* 일반 유저: 로그아웃 버튼 */}
+            {isAuthenticated && !isGuest && (
               <Button size="sm" variant="white" onClick={logout} disabled={isLoggingOut}>
                 {isLoggingOut ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -131,7 +147,10 @@ export const Header = () => {
                   </>
                 )}
               </Button>
-            ) : (
+            )}
+
+            {/* 비인증 (로딩 중): 로그인 버튼 */}
+            {!isAuthenticated && (
               <Button size="sm" variant="white" onClick={() => void navigate("/login")}>
                 <LogIn className="h-4 w-4 md:mr-2" />
                 <span className="hidden md:inline">로그인</span>

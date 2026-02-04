@@ -9,10 +9,16 @@ import { CategoryCharacterSection } from "./category/CategoryCharacterSection";
 import { CategorySection } from "./category/CategorySection";
 
 export const HomePage = () => {
+  // ==========================================
+  // 로컬 상태
+  // ==========================================
+  const [activeTab, setActiveTab] = useState<"stories" | "characters">("stories");
+
+  // ==========================================
+  // 서버 상태 (React Query)
+  // ==========================================
   const { data: heroSlides = [], isLoading: isHeroLoading } = useHeroSlides();
   const { data: categories = [] } = useCategories();
-
-  const [activeTab, setActiveTab] = useState<"stories" | "characters">("stories");
 
   return (
     <main className="pb-20">

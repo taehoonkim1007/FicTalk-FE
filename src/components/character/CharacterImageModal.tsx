@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/messages";
 import { useGenerateProfileImage } from "@/queries/useStoriesQueries";
 
 interface CharacterImageModalProps {
@@ -61,11 +62,11 @@ export const CharacterImageModal = ({
   // AI 이미지 생성
   const handleGenerate = () => {
     if (!editedCharacter.description.trim()) {
-      toast.error("캐릭터 설명을 입력해주세요.");
+      toast.error(ERROR_MESSAGES.CHARACTER_DESCRIPTION_REQUIRED);
       return;
     }
     if (!editedCharacter.personality.trim()) {
-      toast.error("캐릭터 성격을 입력해주세요.");
+      toast.error(ERROR_MESSAGES.CHARACTER_PERSONALITY_REQUIRED);
       return;
     }
 
@@ -77,10 +78,10 @@ export const CharacterImageModal = ({
       {
         onSuccess: (data) => {
           setGeneratedImage(data.imageBase64);
-          toast.success("이미지가 생성되었습니다.");
+          toast.success(SUCCESS_MESSAGES.IMAGE_GENERATED);
         },
         onError: () => {
-          toast.error("이미지 생성에 실패했습니다. 다시 시도해주세요.");
+          toast.error(ERROR_MESSAGES.IMAGE_GENERATE_FAILED);
         },
       },
     );

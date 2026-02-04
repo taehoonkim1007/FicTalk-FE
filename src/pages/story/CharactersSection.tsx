@@ -146,11 +146,21 @@ export const CharactersSection = ({
   handleCloseVoicePreviewModal,
   handleConfirmVoice,
 }: CharactersSectionProps) => {
-  const displayCharacters = isEditMode ? existingCharacters : characters;
-
+  // ==========================================
+  // 로컬 상태
+  // ==========================================
   // 캐릭터별 "스토리 배경 사용" 상태 (characterId -> boolean)
   const [useStoryBackgroundMap, setUseStoryBackgroundMap] = useState<Record<string, boolean>>({});
 
+  // ==========================================
+  // 계산된 값 (Computed)
+  // ==========================================
+  const displayCharacters = isEditMode ? existingCharacters : characters;
+
+  // ==========================================
+  // 핸들러
+  // ==========================================
+  // 스토리 배경 사용 체크박스 변경
   const handleUseStoryBackgroundChange = (characterId: string, checked: boolean) => {
     setUseStoryBackgroundMap((prev) => ({ ...prev, [characterId]: checked }));
     // 체크 시 스토리 배경 이미지를 캐릭터 배경으로 설정

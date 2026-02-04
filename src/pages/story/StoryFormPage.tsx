@@ -13,11 +13,30 @@ import type { StoryFormData } from "@/types/story";
 import { StoryForm } from "./StoryForm";
 
 export const StoryFormPage = () => {
+  // ==========================================
+  // 외부 훅
+  // ==========================================
   const navigate = useNavigate();
   const location = useLocation();
   const { storyId } = useParams<{ storyId: string }>();
+  const { isAuthenticated } = useAuthStore();
+
+  // ==========================================
+  // 서버 상태 (React Query)
+  // ==========================================
+  const { data: existingStory, isLoading: isStoryLoading } = useStory(storyId || "", !!storyId);
+  const { mutate: createStory, isPending: isCreating } = useCreateStory();
+  const { mutate: updateStory, isPending: isUpdating } = useUpdateStory();
+
+  // ==========================================
+  // 계산된 값 (Computed)
+  // ==========================================
   const isEditMode = !!storyId;
 
+  // ==========================================
+  // 핸들러
+  // ==========================================
+  // 뒤로가기
   const handleBack = () => {
     const from = (location.state as { from?: string } | null)?.from;
     if (from) {
@@ -27,12 +46,7 @@ export const StoryFormPage = () => {
     }
   };
 
-  const { isAuthenticated } = useAuthStore();
-  const { data: existingStory, isLoading: isStoryLoading } = useStory(storyId || "", isEditMode);
-
-  const { mutate: createStory, isPending: isCreating } = useCreateStory();
-  const { mutate: updateStory, isPending: isUpdating } = useUpdateStory();
-
+  // 폼 제출
   const handleFormSubmit = (data: StoryFormData) => {
     if (isEditMode && storyId) {
       const updateData = {

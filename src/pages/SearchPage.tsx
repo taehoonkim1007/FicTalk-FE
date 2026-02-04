@@ -11,8 +11,15 @@ import type { CharacterWithStory } from "@/types/character";
 import type { Story } from "@/types/story";
 
 export const SearchPage = () => {
+  // ==========================================
+  // 외부 훅
+  // ==========================================
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
+  // ==========================================
+  // 서버 상태 (React Query)
+  // ==========================================
   const query = searchParams.get("q") || "";
 
   const {
@@ -27,17 +34,25 @@ export const SearchPage = () => {
     isError: charactersError,
   } = useCharacters({ search: query, limit: 12 });
 
+  // ==========================================
+  // 계산된 값 (Computed)
+  // ==========================================
   const stories = storiesData?.stories || [];
   const characters = charactersData?.characters || [];
   const isLoading = storiesLoading || charactersLoading;
   const hasNoResults = !isLoading && stories.length === 0 && characters.length === 0;
 
+  // ==========================================
+  // 핸들러
+  // ==========================================
+  // 스토리 선택
   const handleStorySelect = (story: Story) => {
     void navigate(`/stories/${story.id}`, {
       state: { from: `/search?q=${encodeURIComponent(query)}` },
     });
   };
 
+  // 캐릭터 선택
   const handleCharacterSelect = (character: CharacterWithStory) => {
     void navigate(`/characters/${character.id}`, {
       state: { from: `/search?q=${encodeURIComponent(query)}` },

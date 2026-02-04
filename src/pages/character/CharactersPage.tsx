@@ -9,21 +9,46 @@ import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/ui/pagination";
 import { useCategoryMeta } from "@/hooks/useCategoryMeta";
 import { useCharacters } from "@/queries/useCharactersQueries";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { isGuestUser } from "@/types/auth";
 import type { CharacterWithStory } from "@/types/character";
 
 export const CharactersPage = () => {
-  const navigate = useNavigate();
-  const { categorySlug } = useParams<{ categorySlug: string }>();
+  // ==========================================
+  // 로컬 상태
+  // ==========================================
   const [page, setPage] = useState(1);
 
+  // ==========================================
+  // 외부 훅
+  // ==========================================
+  const navigate = useNavigate();
+  const { categorySlug } = useParams<{ categorySlug: string }>();
+
+  // ==========================================
+  // 외부 상태 (Store)
+  // ==========================================
+  const { user } = useAuthStore();
+
+  // ==========================================
+  // 서버 상태 (React Query)
+  // ==========================================
   const { data, isLoading, isError } = useCharacters({
     category: categorySlug,
     page,
     limit: 12,
   });
 
+  // ==========================================
+  // 계산된 값 (Computed)
+  // ==========================================
+  const isGuest = user && isGuestUser(user);
   const { Icon, title, description, colorClass } = useCategoryMeta(categorySlug);
 
+  // ==========================================
+  // 핸들러
+  // ==========================================
+  // 캐릭터 선택
   const handleCharacterSelect = (character: CharacterWithStory) => {
     void navigate(`/characters/${character.id}`);
   };
@@ -48,7 +73,7 @@ export const CharactersPage = () => {
             <h1 className="text-3xl font-bold text-white md:text-4xl">{title}</h1>
             <p className="text-stone-400 md:text-lg">{description}</p>
           </div>
-          {categorySlug === "creative" && (
+          {categorySlug === "creative" && !isGuest && (
             <Button
               onClick={() =>
                 void navigate("/stories/new", {

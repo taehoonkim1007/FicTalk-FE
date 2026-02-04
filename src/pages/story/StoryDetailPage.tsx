@@ -18,35 +18,58 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/messages";
+import { useStartChat } from "@/hooks/useStartChat";
 import { getImageUrl } from "@/lib/image";
 import { useDeleteStory, useStory, useStoryCharacters } from "@/queries/useStoriesQueries";
 import { useAuthStore } from "@/stores/useAuthStore";
-import type { Character } from "@/types/character";
+import type { CharacterDetail } from "@/types/character";
 
 export const StoryDetailPage = () => {
+  // ==========================================
+  // 로컬 상태
+  // ==========================================
+  // 삭제 확인 다이얼로그 상태
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // ==========================================
+  // 외부 훅
+  // ==========================================
   const navigate = useNavigate();
   const location = useLocation();
   const { storyId } = useParams<{ storyId: string }>();
-
   const { user } = useAuthStore();
+  const { startChat } = useStartChat();
+
+  // ==========================================
+  // 서버 상태 (React Query)
+  // ==========================================
   const { data: story, isLoading, isError } = useStory(storyId || "", !!storyId);
   const { data: charactersData } = useStoryCharacters(storyId || "", !!storyId);
   const { mutate: deleteStory, isPending: isDeleting } = useDeleteStory();
 
+  // ==========================================
+  // 계산된 값 (Computed)
+  // ==========================================
   const characters = charactersData?.characters || story?.characters || [];
   const isOwner = user && story && story.creator && user.id === story.creator.id;
 
-  const handleStartChat = (character: Character) => {
-    void navigate("/chat", {
-      state: {
-        storyId: story?.id,
-        storyTitle: story?.title,
-        characterId: character.id,
-        characterName: character.name,
-      },
+  // ==========================================
+  // 핸들러
+  // ==========================================
+  // 채팅 시작
+  const handleStartChat = (character: CharacterDetail) => {
+    if (!story) return;
+
+    void startChat({
+      storyId: story.id,
+      storyTitle: story.title,
+      characterId: character.id,
+      characterName: character.name,
+      firstMessage: character.firstMessage,
     });
   };
 
+  // 뒤로가기
   const handleBack = () => {
     const from = (location.state as { from?: string } | null)?.from;
     if (from) {
@@ -58,9 +81,7 @@ export const StoryDetailPage = () => {
     }
   };
 
-  // 삭제 확인 다이얼로그 상태
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
+  // 수정 페이지로 이동
   const handleEdit = () => {
     const from = (location.state as { from?: string } | null)?.from;
     void navigate(`/stories/${storyId}/edit`, {
@@ -68,10 +89,12 @@ export const StoryDetailPage = () => {
     });
   };
 
+  // 삭제 다이얼로그 열기
   const handleDeleteClick = () => {
     setDeleteDialogOpen(true);
   };
 
+  // 삭제 확인
   const handleConfirmDelete = () => {
     if (!storyId) return;
 

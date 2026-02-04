@@ -19,11 +19,20 @@ interface StoryFormProps {
 }
 
 export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: StoryFormProps) => {
-  const storyId = initialData?.id || "";
-
+  // ==========================================
+  // 로컬 상태
+  // ==========================================
   // 탭 상태
   const [activeTab, setActiveTab] = useState("story");
 
+  // ==========================================
+  // Props 기반 파생 값
+  // ==========================================
+  const storyId = initialData?.id || "";
+
+  // ==========================================
+  // 커스텀 훅 (로직 분리)
+  // ==========================================
   // 1. 폼 상태 로직 분리
   const {
     title,
@@ -91,6 +100,15 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
     formState: { title, description, summary },
   });
 
+  // ==========================================
+  // 계산된 값 (Computed)
+  // ==========================================
+  // 스토리 정보 입력 완료 여부 (이미지/캐릭터 탭 활성화 조건)
+  const isStoryInfoComplete = !!(title.trim() && description.trim() && summary.trim());
+
+  // ==========================================
+  // 핸들러
+  // ==========================================
   // 폼 제출
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,9 +123,6 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
       characters,
     });
   };
-
-  // 스토리 정보 입력 완료 여부 (이미지/캐릭터 탭 활성화 조건)
-  const isStoryInfoComplete = !!(title.trim() && description.trim() && summary.trim());
 
   return (
     <form onSubmit={handleSubmit} className="pb-24">

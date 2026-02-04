@@ -12,10 +12,20 @@ interface CategoryCharacterSectionProps {
 }
 
 export const CategoryCharacterSection = memo(({ category }: CategoryCharacterSectionProps) => {
+  // ==========================================
+  // 외부 훅
+  // ==========================================
   const navigate = useNavigate();
+
+  // ==========================================
+  // 서버 상태 (React Query)
+  // ==========================================
   const { data, isLoading } = useCharacters({ category: category.slug, limit: 4 });
 
-  // rerender-functional-setstate: useCallback for stable reference
+  // ==========================================
+  // 핸들러
+  // ==========================================
+  // 캐릭터 선택
   const handleCharacterSelect = useCallback(
     (character: CharacterWithStory) => {
       void navigate(`/characters/${character.id}`);

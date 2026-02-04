@@ -1,41 +1,53 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 import { HERO_CAROUSEL } from "@/constants/ui";
+import { useStartChat } from "@/hooks/useStartChat";
 import type { HeroSlide } from "@/types/hero-slide";
 
 export const useHeroCarousel = (slides: HeroSlide[]) => {
-  const navigate = useNavigate();
-
-  // Clone & Teleport 캐러셀 상태
+  // ==========================================
+  // 로컬 상태
+  // ==========================================
+  // 현재 슬라이드 인덱스
   const [currentIndex, setCurrentIndex] = useState<number>(HERO_CAROUSEL.CLONE_COUNT);
+  // 애니메이션 진행 여부
   const [isAnimating, setIsAnimating] = useState(false);
-  // rerender-lazy-state-init: Lazy initializer for window access
+  // 모바일 여부
   const [isMobile, setIsMobile] = useState(
     () => typeof window !== "undefined" && window.innerWidth < HERO_CAROUSEL.MOBILE_BREAKPOINT,
   );
+  // 컨테이너 너비
   const [containerWidth, setContainerWidth] = useState<number>(
     HERO_CAROUSEL.CONTAINER_WIDTH_DEFAULT,
   );
+  // slides.length 변경 감지용 (Derived State Pattern)
+  const [prevSlideLength, setPrevSlideLength] = useState(slides.length);
+
+  // ==========================================
+  // Refs
+  // ==========================================
   const containerRef = useRef<HTMLDivElement>(null);
   const autoplayRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isTransitioningRef = useRef(false);
 
-  // 모바일 감지 + 컨테이너 너비 추적
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < HERO_CAROUSEL.MOBILE_BREAKPOINT);
-      if (containerRef.current) {
-        setContainerWidth(containerRef.current.offsetWidth);
-      }
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  // ==========================================
+  // 외부 훅
+  // ==========================================
+  const { startChat } = useStartChat();
 
-  // 복제본 포함 슬라이드 배열 생성 (useMemo로 메모이제이션)
-  // [last3, last2, last1, ...original, first1, first2, first3]
+  // ==========================================
+  // Derived State (렌더 시점 동기화)
+  // ==========================================
+  // slides.length가 변경될 때 currentIndex를 리셋
+  if (slides.length !== prevSlideLength) {
+    setPrevSlideLength(slides.length);
+    setCurrentIndex(HERO_CAROUSEL.CLONE_COUNT);
+  }
+
+  // ==========================================
+  // 계산된 값 (Computed)
+  // ==========================================
+  // 복제본 포함 슬라이드 배열 생성
   const allSlides = useMemo(() => {
     if (slides.length === 0) return [];
 
@@ -66,7 +78,7 @@ export const useHeroCarousel = (slides: HeroSlide[]) => {
     [containerWidth, slideWidth],
   );
 
-  // Coverflow 스타일 계산
+  // Coverflow 스타일 계산 함수
   const getSlideStyle = useCallback(
     (index: number): React.CSSProperties => {
       const distance = index - currentIndex;
@@ -98,6 +110,9 @@ export const useHeroCarousel = (slides: HeroSlide[]) => {
     [currentIndex, isMobile],
   );
 
+  // ==========================================
+  // 핸들러
+  // ==========================================
   // 슬라이드 이동
   const goToSlide = useCallback((index: number, animate = true) => {
     if (isTransitioningRef.current) return;
@@ -128,7 +143,7 @@ export const useHeroCarousel = (slides: HeroSlide[]) => {
     }, HERO_CAROUSEL.AUTOPLAY_DELAY);
   }, []);
 
-  // 다음 슬라이드 (rerender-functional-setstate: Remove currentIndex dependency)
+  // 다음 슬라이드
   const scrollNext = useCallback(() => {
     if (isTransitioningRef.current) return;
     setIsAnimating(true);
@@ -137,7 +152,7 @@ export const useHeroCarousel = (slides: HeroSlide[]) => {
     resetAutoplay();
   }, [resetAutoplay]);
 
-  // 이전 슬라이드 (rerender-functional-setstate: Remove currentIndex dependency)
+  // 이전 슬라이드
   const scrollPrev = useCallback(() => {
     if (isTransitioningRef.current) return;
     setIsAnimating(true);
@@ -167,7 +182,6 @@ export const useHeroCarousel = (slides: HeroSlide[]) => {
   );
 
   // transitionend 핸들러 - Clone & Teleport 핵심 로직
-  // rerender-functional-setstate: Use functional setState to remove currentIndex dependency
   const handleTransitionEnd = useCallback(() => {
     isTransitioningRef.current = false;
 
@@ -195,6 +209,7 @@ export const useHeroCarousel = (slides: HeroSlide[]) => {
     });
   }, [slides.length]);
 
+  // Autoplay 시작
   const startAutoplay = useCallback(() => {
     if (autoplayRef.current) {
       clearInterval(autoplayRef.current);
@@ -206,6 +221,7 @@ export const useHeroCarousel = (slides: HeroSlide[]) => {
     }, HERO_CAROUSEL.AUTOPLAY_DELAY);
   }, []);
 
+  // Autoplay 정지
   const stopAutoplay = useCallback(() => {
     if (autoplayRef.current) {
       clearInterval(autoplayRef.current);
@@ -213,12 +229,37 @@ export const useHeroCarousel = (slides: HeroSlide[]) => {
     }
   }, []);
 
-  // slides.length가 변경될 때 currentIndex를 리셋 (Derived State Pattern)
-  const [prevSlideLength, setPrevSlideLength] = useState(slides.length);
-  if (slides.length !== prevSlideLength) {
-    setPrevSlideLength(slides.length);
-    setCurrentIndex(HERO_CAROUSEL.CLONE_COUNT);
-  }
+  // 채팅 시작 핸들러
+  const handleStartChat = useCallback(
+    (slide: HeroSlide, e: React.MouseEvent) => {
+      e.stopPropagation();
+
+      void startChat({
+        storyId: slide.story.id,
+        storyTitle: slide.story.title,
+        characterId: slide.character.id,
+        characterName: slide.character.name,
+        firstMessage: slide.character.firstMessage,
+      });
+    },
+    [startChat],
+  );
+
+  // ==========================================
+  // Effects
+  // ==========================================
+  // 모바일 감지 + 컨테이너 너비 추적
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < HERO_CAROUSEL.MOBILE_BREAKPOINT);
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.offsetWidth);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // 초기화 및 Autoplay 시작
   useEffect(() => {
@@ -228,23 +269,6 @@ export const useHeroCarousel = (slides: HeroSlide[]) => {
 
     return () => stopAutoplay();
   }, [slides.length, startAutoplay, stopAutoplay]);
-
-  // 채팅 시작 핸들러 (rerender-functional-setstate: useCallback for stable reference)
-  const handleStartChat = useCallback(
-    (slide: HeroSlide, e: React.MouseEvent) => {
-      e.stopPropagation();
-      void navigate("/chat", {
-        state: {
-          storyId: slide.story.id,
-          storyTitle: slide.story.title,
-          characterId: slide.character.id,
-          characterName: slide.character.name,
-          firstMessage: slide.character.firstMessage,
-        },
-      });
-    },
-    [navigate],
-  );
 
   return {
     slideState: {

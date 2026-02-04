@@ -12,10 +12,20 @@ interface CategorySectionProps {
 }
 
 export const CategorySection = memo(({ category }: CategorySectionProps) => {
+  // ==========================================
+  // 외부 훅
+  // ==========================================
   const navigate = useNavigate();
+
+  // ==========================================
+  // 서버 상태 (React Query)
+  // ==========================================
   const { data, isLoading } = useStories({ category: category.slug, limit: 4 });
 
-  // rerender-functional-setstate: useCallback for stable reference
+  // ==========================================
+  // 핸들러
+  // ==========================================
+  // 스토리 선택
   const handleStorySelect = useCallback(
     (story: Story) => {
       void navigate(`/stories/${story.id}`);

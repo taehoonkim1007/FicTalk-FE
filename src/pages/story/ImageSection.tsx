@@ -4,6 +4,7 @@ import { ImageIcon, Loader2, Sparkles, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/messages";
 import { getImageUrl } from "@/lib/image";
 import { useGenerateBackgroundImage, useGenerateCoverImage } from "@/queries/useStoriesQueries";
 
@@ -26,17 +27,28 @@ export const ImageSection = ({
   description,
   summary,
 }: ImageSectionProps) => {
+  // ==========================================
+  // Refs
+  // ==========================================
   const coverInputRef = useRef<HTMLInputElement>(null);
   const backgroundInputRef = useRef<HTMLInputElement>(null);
 
+  // ==========================================
+  // 서버 상태 (React Query)
+  // ==========================================
   const { mutate: generateCover, isPending: isGeneratingCover } = useGenerateCoverImage();
   const { mutate: generateBackground, isPending: isGeneratingBackground } =
     useGenerateBackgroundImage();
 
-  // AI 생성 가능 여부
+  // ==========================================
+  // 계산된 값 (Computed)
+  // ==========================================
   const canGenerateImages = !!(title.trim() && description.trim() && summary.trim());
 
-  // 파일 선택 핸들러
+  // ==========================================
+  // 핸들러
+  // ==========================================
+  // 파일 선택
   const handleFileSelect = (
     e: React.ChangeEvent<HTMLInputElement>,
     onChange: (image: string | null) => void,
@@ -56,7 +68,7 @@ export const ImageSection = ({
   // AI 커버 이미지 생성
   const handleGenerateCover = () => {
     if (!title.trim() || !description.trim() || !summary.trim()) {
-      toast.error("제목, 한줄 소개, 줄거리를 먼저 입력해주세요.");
+      toast.error(ERROR_MESSAGES.STORY_FIELDS_REQUIRED);
       return;
     }
     generateCover(
@@ -64,10 +76,10 @@ export const ImageSection = ({
       {
         onSuccess: (data) => {
           onCoverImageChange(`data:image/png;base64,${data.imageBase64}`);
-          toast.success("커버 이미지가 생성되었습니다.");
+          toast.success(SUCCESS_MESSAGES.COVER_IMAGE_GENERATED);
         },
         onError: () => {
-          toast.error("커버 이미지 생성에 실패했습니다.");
+          toast.error(ERROR_MESSAGES.COVER_IMAGE_FAILED);
         },
       },
     );
@@ -76,7 +88,7 @@ export const ImageSection = ({
   // AI 배경 이미지 생성
   const handleGenerateBackground = () => {
     if (!title.trim() || !description.trim() || !summary.trim()) {
-      toast.error("제목, 한줄 소개, 줄거리를 먼저 입력해주세요.");
+      toast.error(ERROR_MESSAGES.STORY_FIELDS_REQUIRED);
       return;
     }
     generateBackground(
@@ -84,10 +96,10 @@ export const ImageSection = ({
       {
         onSuccess: (data) => {
           onBackgroundImageChange(`data:image/png;base64,${data.imageBase64}`);
-          toast.success("배경 이미지가 생성되었습니다.");
+          toast.success(SUCCESS_MESSAGES.BACKGROUND_IMAGE_GENERATED);
         },
         onError: () => {
-          toast.error("배경 이미지 생성에 실패했습니다.");
+          toast.error(ERROR_MESSAGES.BACKGROUND_IMAGE_FAILED);
         },
       },
     );

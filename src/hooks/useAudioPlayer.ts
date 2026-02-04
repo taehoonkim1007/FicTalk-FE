@@ -1,10 +1,21 @@
 import { useCallback, useRef, useState } from "react";
 
 export const useAudioPlayer = () => {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // ==========================================
+  // 로컬 상태
+  // ==========================================
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // ==========================================
+  // Refs
+  // ==========================================
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // ==========================================
+  // 핸들러
+  // ==========================================
+  // 오디오 재생
   const playAudio = useCallback((base64Audio: string) => {
     if (audioRef.current) {
       audioRef.current.pause();
@@ -30,6 +41,7 @@ export const useAudioPlayer = () => {
     });
   }, []);
 
+  // 오디오 정지
   const stopAudio = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause();

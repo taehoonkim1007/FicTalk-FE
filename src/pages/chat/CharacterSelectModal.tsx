@@ -30,14 +30,27 @@ export const CharacterSelectModal = ({
   isAdding,
   existingCharacterIds,
 }: CharacterSelectModalProps) => {
+  // ==========================================
+  // 로컬 상태
+  // ==========================================
   const [search, setSearch] = useState("");
 
-  const { data, isLoading } = useCharacters({ search, limit: 30, role: "주인공" });
-  const characters = data?.characters || [];
+  // ==========================================
+  // 서버 상태 (React Query)
+  // ==========================================
+  const { data, isLoading } = useCharacters({ search, limit: 30 });
 
+  // ==========================================
+  // 계산된 값 (Computed)
+  // ==========================================
+  const characters = data?.characters || [];
   // 이미 추가된 캐릭터 제외
   const availableCharacters = characters.filter((c) => !existingCharacterIds.includes(c.id));
 
+  // ==========================================
+  // 핸들러
+  // ==========================================
+  // 캐릭터 선택
   const handleSelect = (character: CharacterWithStory) => {
     onSelect(character.id);
   };

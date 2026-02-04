@@ -40,38 +40,14 @@ export const useStoryCharactersLogic = ({
   initialCharacters,
   formState,
 }: UseStoryCharactersLogicProps) => {
+  // ==========================================
+  // 로컬 상태
+  // ==========================================
   // 생성 모드: 캐릭터 로컬 상태
   const [characters, setCharacters] = useState<(CreateCharacterRequest & { id: string })[]>([]);
-
-  // 편집 모드: 캐릭터 목록 조회
-  const { data: charactersData } = useStoryCharacters(storyId, isEditMode);
-  const existingCharacters = charactersData?.characters ?? initialCharacters;
-
-  // 편집 모드: 캐릭터 CRUD Queries
-  const { mutateAsync: createCharacterAsync, isPending: isCreatingCharacter } =
-    useCreateCharacter(storyId);
-  const { mutate: updateCharacter, isPending: isUpdatingCharacter } = useUpdateCharacter(storyId);
-  const { mutate: deleteCharacter, isPending: isDeletingCharacter } = useDeleteCharacter(storyId);
-
-  // AI 캐릭터 생성
-  const { mutateAsync: generateCharactersMutateAsync, isPending: isGeneratingCharacters } =
-    useGenerateCharacters();
-
-  // Voice ID 조회
-  const { mutateAsync: getVoiceIdMutateAsync, isPending: isGettingVoiceId } = useGetVoiceId();
-
-  // TTS 샘플 생성
-  const { mutateAsync: generateTTSSampleMutateAsync, isPending: isGeneratingTTSSample } =
-    useGenerateTTSSample();
-
-  // AI 캐릭터 배경 이미지 생성
-  const { mutate: generateBackgroundImageMutate, isPending: isGeneratingBackgroundImage } =
-    useGenerateCharacterBackgroundImage();
-
   // 편집 중인 캐릭터 상태
   const [editingCharacterId, setEditingCharacterId] = useState<string | null>(null);
   const [editingCharacterData, setEditingCharacterData] = useState<UpdateCharacterRequest>({});
-
   // 새 캐릭터 추가 상태 (편집 모드용)
   const [isAddingCharacter, setIsAddingCharacter] = useState(false);
   const [newCharacterData, setNewCharacterData] = useState<CreateCharacterRequest>({
@@ -86,7 +62,8 @@ export const useStoryCharactersLogic = ({
     backgroundColor: null,
     voiceId: undefined,
   });
-
+  // 삭제 확인 대상 캐릭터
+  const [characterToDelete, setCharacterToDelete] = useState<string | null>(null);
   // 이미지 생성 모달 상태
   const [imageModalCharacter, setImageModalCharacter] = useState<{
     id: string;
@@ -95,12 +72,10 @@ export const useStoryCharactersLogic = ({
     description: string;
     personality: string;
   } | null>(null);
-
   // 배경 이미지 생성 중인 캐릭터 ID
   const [generatingBackgroundCharacterId, setGeneratingBackgroundCharacterId] = useState<
     string | null
   >(null);
-
   // 음성 미리듣기 모달 상태
   const [voicePreviewModal, setVoicePreviewModal] = useState<{
     characterId: string;
@@ -110,9 +85,26 @@ export const useStoryCharactersLogic = ({
     voiceSettings: VoiceSettings;
     audioBase64: string | null;
   } | null>(null);
-
   // 음성 생성 중인 캐릭터 ID
   const [generatingVoiceCharacterId, setGeneratingVoiceCharacterId] = useState<string | null>(null);
+
+  // ==========================================
+  // 서버 상태 (React Query)
+  // ==========================================
+  const { data: charactersData } = useStoryCharacters(storyId, isEditMode);
+  const existingCharacters = charactersData?.characters ?? initialCharacters;
+
+  const { mutateAsync: createCharacterAsync, isPending: isCreatingCharacter } =
+    useCreateCharacter(storyId);
+  const { mutate: updateCharacter, isPending: isUpdatingCharacter } = useUpdateCharacter(storyId);
+  const { mutate: deleteCharacter, isPending: isDeletingCharacter } = useDeleteCharacter(storyId);
+  const { mutateAsync: generateCharactersMutateAsync, isPending: isGeneratingCharacters } =
+    useGenerateCharacters();
+  const { mutateAsync: getVoiceIdMutateAsync, isPending: isGettingVoiceId } = useGetVoiceId();
+  const { mutateAsync: generateTTSSampleMutateAsync, isPending: isGeneratingTTSSample } =
+    useGenerateTTSSample();
+  const { mutate: generateBackgroundImageMutate, isPending: isGeneratingBackgroundImage } =
+    useGenerateCharacterBackgroundImage();
 
   // ==========================================
   // 핸들러: 로컬 상태 (생성 모드)
@@ -182,7 +174,7 @@ export const useStoryCharactersLogic = ({
       !editingCharacterData.role?.trim() ||
       !editingCharacterData.description?.trim()
     ) {
-      toast.error("이름, 역할, 설명은 필수입니다.");
+      toast.error(ERROR_MESSAGES.CHARACTER_FIELDS_REQUIRED);
       return;
     }
 
@@ -200,9 +192,6 @@ export const useStoryCharactersLogic = ({
       },
     );
   };
-
-  // 삭제 확인 대상 캐릭터 상태
-  const [characterToDelete, setCharacterToDelete] = useState<string | null>(null);
 
   // 삭제 확인 다이얼로그 열기
   const handleDeleteCharacter = (characterId: string) => {
@@ -257,7 +246,7 @@ export const useStoryCharactersLogic = ({
       !newCharacterData.role?.trim() ||
       !newCharacterData.description?.trim()
     ) {
-      toast.error("이름, 역할, 설명은 필수입니다.");
+      toast.error(ERROR_MESSAGES.CHARACTER_FIELDS_REQUIRED);
       return;
     }
 
@@ -273,6 +262,7 @@ export const useStoryCharactersLogic = ({
   // ==========================================
   // 핸들러: 이미지 생성 모달
   // ==========================================
+  // 이미지 모달 열기
   const handleOpenImageModal = (char: {
     id: string;
     name: string;
@@ -289,10 +279,12 @@ export const useStoryCharactersLogic = ({
     });
   };
 
+  // 이미지 모달 닫기
   const handleCloseImageModal = () => {
     setImageModalCharacter(null);
   };
 
+  // 이미지 확인 (저장/적용)
   const handleConfirmImage = (imageBase64: string) => {
     if (!imageModalCharacter) return;
 
@@ -304,11 +296,11 @@ export const useStoryCharactersLogic = ({
         { id: imageModalCharacter.id, data: { profileImage: profileImageDataUrl } },
         {
           onSuccess: () => {
-            toast.success("프로필 이미지가 저장되었습니다.");
+            toast.success(SUCCESS_MESSAGES.PROFILE_IMAGE_SAVED);
             setImageModalCharacter(null);
           },
           onError: () => {
-            toast.error("프로필 이미지 저장에 실패했습니다.");
+            toast.error(ERROR_MESSAGES.PROFILE_IMAGE_SAVE_FAILED);
           },
         },
       );
@@ -320,7 +312,7 @@ export const useStoryCharactersLogic = ({
         ),
       );
       setImageModalCharacter(null);
-      toast.success("프로필 이미지가 적용되었습니다.");
+      toast.success(SUCCESS_MESSAGES.PROFILE_IMAGE_APPLIED);
     }
   };
 
@@ -329,7 +321,7 @@ export const useStoryCharactersLogic = ({
   // ==========================================
   const handleGenerateCharacters = async () => {
     if (!formState.title.trim() || !formState.description.trim() || !formState.summary.trim()) {
-      toast.error("제목, 한줄 소개, 줄거리를 먼저 입력해주세요.");
+      toast.error(ERROR_MESSAGES.STORY_FIELDS_REQUIRED);
       return;
     }
 
@@ -356,7 +348,7 @@ export const useStoryCharactersLogic = ({
       setCharacters(newCharacters);
       toast.success(`${data.characters.length}명의 캐릭터가 생성되었습니다.`);
     } catch {
-      toast.error("캐릭터 생성에 실패했습니다.");
+      toast.error(ERROR_MESSAGES.CHARACTER_GENERATE_FAILED);
     }
   };
 
@@ -369,7 +361,7 @@ export const useStoryCharactersLogic = ({
     personality?: string | null;
   }) => {
     if (!char.description.trim()) {
-      toast.error("설명을 먼저 입력해주세요.");
+      toast.error(ERROR_MESSAGES.DESCRIPTION_REQUIRED);
       return;
     }
 
@@ -390,11 +382,11 @@ export const useStoryCharactersLogic = ({
               { id: char.id, data: { backgroundImage: backgroundImageDataUrl } },
               {
                 onSuccess: () => {
-                  toast.success("배경 이미지가 저장되었습니다.");
+                  toast.success(SUCCESS_MESSAGES.BACKGROUND_IMAGE_SAVED);
                   setGeneratingBackgroundCharacterId(null);
                 },
                 onError: () => {
-                  toast.error("배경 이미지 저장에 실패했습니다.");
+                  toast.error(ERROR_MESSAGES.BACKGROUND_IMAGE_SAVE_FAILED);
                   setGeneratingBackgroundCharacterId(null);
                 },
               },
@@ -407,11 +399,11 @@ export const useStoryCharactersLogic = ({
               ),
             );
             setGeneratingBackgroundCharacterId(null);
-            toast.success("배경 이미지가 적용되었습니다.");
+            toast.success(SUCCESS_MESSAGES.BACKGROUND_IMAGE_APPLIED);
           }
         },
         onError: () => {
-          toast.error("배경 이미지 생성에 실패했습니다.");
+          toast.error(ERROR_MESSAGES.BACKGROUND_IMAGE_FAILED);
           setGeneratingBackgroundCharacterId(null);
         },
       },
@@ -429,7 +421,7 @@ export const useStoryCharactersLogic = ({
     firstMessage?: string | null;
   }) => {
     if (!char.description.trim()) {
-      toast.error("설명을 먼저 입력해주세요.");
+      toast.error(ERROR_MESSAGES.DESCRIPTION_REQUIRED);
       return;
     }
 
@@ -460,16 +452,18 @@ export const useStoryCharactersLogic = ({
         audioBase64: ttsResult.audioBase64,
       });
     } catch {
-      toast.error("음성 생성에 실패했습니다.");
+      toast.error(ERROR_MESSAGES.VOICE_GENERATE_FAILED);
     } finally {
       setGeneratingVoiceCharacterId(null);
     }
   };
 
+  // 음성 미리듣기 모달 닫기
   const handleCloseVoicePreviewModal = () => {
     setVoicePreviewModal(null);
   };
 
+  // 음성 확인 (저장/적용)
   const handleConfirmVoice = () => {
     if (!voicePreviewModal) return;
 
@@ -485,11 +479,11 @@ export const useStoryCharactersLogic = ({
         },
         {
           onSuccess: () => {
-            toast.success("음성이 저장되었습니다.");
+            toast.success(SUCCESS_MESSAGES.VOICE_SAVED);
             setVoicePreviewModal(null);
           },
           onError: () => {
-            toast.error("음성 저장에 실패했습니다.");
+            toast.error(ERROR_MESSAGES.VOICE_SAVE_FAILED);
           },
         },
       );
@@ -507,7 +501,7 @@ export const useStoryCharactersLogic = ({
         ),
       );
       setVoicePreviewModal(null);
-      toast.success("음성이 적용되었습니다.");
+      toast.success(SUCCESS_MESSAGES.VOICE_APPLIED);
     }
   };
 

@@ -1,4 +1,4 @@
-import { ArrowLeft, Keyboard, RotateCcw, Volume2 } from "lucide-react";
+import { ArrowLeft, Keyboard, MessageCircle, RotateCcw, Volume2 } from "lucide-react";
 
 import {
   AlertDialog,
@@ -15,6 +15,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { getImageUrl } from "@/lib/image";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { isGuestUser } from "@/types/auth";
 import type { ChatCharacter } from "@/types/chat";
 
 export type ChatMode = "text" | "voice";
@@ -36,7 +38,17 @@ export const ChatHeader = ({
   onReset,
   isResetting,
 }: ChatHeaderProps) => {
+  // ==========================================
+  // 외부 상태 (Store)
+  // ==========================================
+  const { user } = useAuthStore();
+
+  // ==========================================
+  // 계산된 값 (Computed)
+  // ==========================================
   const hasVoice = !!character.voiceId;
+  const isGuest = user && isGuestUser(user);
+  const guestUsageInfo = isGuest ? `${user.usageCount}/${user.maxUsage}` : null;
 
   return (
     <header className="flex h-24 items-center gap-4 border-b border-stone-800 bg-stone-900 px-4">
@@ -62,6 +74,16 @@ export const ChatHeader = ({
           {character.role} · {character.story.title}
         </p>
       </div>
+
+      {/* 게스트 사용량 표시 */}
+      {isGuest && guestUsageInfo && (
+        <div className="flex items-center gap-1.5 rounded-full bg-stone-800 px-3 py-1.5 text-xs">
+          <MessageCircle className="h-3.5 w-3.5 text-emerald-500" />
+          <span className="text-stone-400">
+            <span className="text-emerald-400">{guestUsageInfo}</span>회
+          </span>
+        </div>
+      )}
 
       {/* Text/Voice 모드 토글 버튼 */}
       {chatMode === "text" ? (

@@ -9,21 +9,46 @@ import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/ui/pagination";
 import { useCategoryMeta } from "@/hooks/useCategoryMeta";
 import { useStories } from "@/queries/useStoriesQueries";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { isGuestUser } from "@/types/auth";
 import type { Story } from "@/types/story";
 
 export const StoriesPage = () => {
-  const navigate = useNavigate();
-  const { categorySlug } = useParams<{ categorySlug: string }>();
+  // ==========================================
+  // 로컬 상태
+  // ==========================================
   const [page, setPage] = useState(1);
 
+  // ==========================================
+  // 외부 훅
+  // ==========================================
+  const navigate = useNavigate();
+  const { categorySlug } = useParams<{ categorySlug: string }>();
+
+  // ==========================================
+  // 외부 상태 (Store)
+  // ==========================================
+  const { user } = useAuthStore();
+
+  // ==========================================
+  // 서버 상태 (React Query)
+  // ==========================================
   const { data, isLoading, isError } = useStories({
     category: categorySlug,
     page,
     limit: 12,
   });
 
+  // ==========================================
+  // 계산된 값 (Computed)
+  // ==========================================
+  const isGuest = user && isGuestUser(user);
   const { Icon, title, description, colorClass } = useCategoryMeta(categorySlug);
 
+  // ==========================================
+  // 핸들러
+  // ==========================================
+  // 스토리 선택
   const handleStorySelect = (story: Story) => {
     void navigate(`/stories/${story.id}`, {
       state: { from: `/${categorySlug}` },
@@ -50,7 +75,7 @@ export const StoriesPage = () => {
             <h1 className="text-3xl font-bold text-white md:text-4xl">{title}</h1>
             <p className="text-stone-400 md:text-lg">{description}</p>
           </div>
-          {categorySlug === "creative" && (
+          {categorySlug === "creative" && !isGuest && (
             <Button
               onClick={() =>
                 void navigate("/stories/new", {

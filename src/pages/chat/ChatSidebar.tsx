@@ -1,4 +1,4 @@
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Users } from "lucide-react";
 
 import {
   AlertDialog,
@@ -15,6 +15,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { getImageUrl } from "@/lib/image";
 import { getParticle } from "@/lib/utils";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { isGuestUser } from "@/types/auth";
 import type { ChatCharacter } from "@/types/chat";
 
 interface ChatSidebarProps {
@@ -34,17 +36,42 @@ export const ChatSidebar = ({
   onAddCharacter,
   isRemoving,
 }: ChatSidebarProps) => {
+  // ==========================================
+  // 외부 상태 (Store)
+  // ==========================================
+  const { user } = useAuthStore();
+
+  // ==========================================
+  // 계산된 값 (Computed)
+  // ==========================================
+  const isGuest = user && isGuestUser(user);
+  const maxCharacters = isGuest ? 1 : Infinity;
+  const canAddCharacter = characters.length < maxCharacters;
+
   return (
     <aside className="flex w-[22rem] flex-col border-l border-stone-800 bg-stone-900">
       {/* 헤더 */}
       <div className="flex h-24 items-center justify-between border-b border-stone-800 px-4">
-        <h2 className="font-bold text-white">대화 목록</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="font-bold text-white">대화 목록</h2>
+          {isGuest && (
+            <div className="flex items-center gap-1 rounded-full bg-stone-800 px-2 py-1 text-xs">
+              <Users className="h-3 w-3 text-amber-500" />
+              <span className="text-stone-400">
+                <span className="text-amber-400">
+                  {characters.length}/{maxCharacters}
+                </span>
+              </span>
+            </div>
+          )}
+        </div>
         <Button
           variant="ghost"
           size="icon-sm"
           onClick={onAddCharacter}
-          className="text-stone-400 hover:text-white"
-          title="대화 상대 추가"
+          disabled={!canAddCharacter}
+          className="text-stone-400 hover:text-white disabled:opacity-50"
+          title={canAddCharacter ? "대화 상대 추가" : "게스트는 캐릭터를 1개만 추가할 수 있습니다"}
         >
           <Plus className="h-5 w-5" />
         </Button>
@@ -55,6 +82,9 @@ export const ChatSidebar = ({
         {characters.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
             <p className="text-sm text-stone-500">대화 상대가 없습니다</p>
+            {isGuest && (
+              <p className="text-xs text-stone-600">게스트는 1명의 캐릭터만 추가할 수 있습니다</p>
+            )}
             <Button
               variant="outline"
               size="sm"
