@@ -75,11 +75,12 @@ export const getChatMessages = async (
 export const sendMessage = async (
   characterId: string,
   data: SendMessageRequest,
+  signal?: AbortSignal,
 ): Promise<SendMessageResponse> => {
   const response = await apiClient.post<SendMessageResponse>(
     `/chat/characters/${characterId}/messages`,
     data,
-    { timeout: 60000 },
+    { timeout: 60000, signal },
   );
   return response.data;
 };

@@ -1,3 +1,5 @@
+import { useCallback, useRef } from "react";
+
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
@@ -39,10 +41,11 @@ export const useChat = () => {
 /**
  * 채팅방 캐릭터 목록 조회
  */
-export const useChatCharacters = () => {
+export const useChatCharacters = (enabled = true) => {
   return useQuery({
     queryKey: chatKeys.characters(),
     queryFn: getChatCharacters,
+    enabled,
   });
 };
 
@@ -97,30 +100,41 @@ export const useRemoveChatCharacter = () => {
 };
 
 /**
- * 메시지 전송 (낙관적 업데이트)
+ * 메시지 전송 (낙관적 업데이트 + 취소 지원)
+ * 임시 메시지를 즉시 표시하고, 응답 시 실제 메시지로 교체
  */
 export const useSendMessage = (characterId: string) => {
   const queryClient = useQueryClient();
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const tempMessageIdRef = useRef<string | null>(null);
 
-  return useMutation({
-    mutationFn: (data: SendMessageRequest) => sendMessage(characterId, data),
+  const mutation = useMutation({
+    mutationFn: (data: SendMessageRequest) => {
+      // 이전 요청이 있으면 취소
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      // 새 AbortController 생성
+      abortControllerRef.current = new AbortController();
+      return sendMessage(characterId, data, abortControllerRef.current.signal);
+    },
     onMutate: async (variables) => {
-      // 진행 중인 쿼리 취소
+      // 진행 중인 refetch 취소
       await queryClient.cancelQueries({ queryKey: chatKeys.messages(characterId) });
 
-      // 이전 상태 저장
-      const previousData = queryClient.getQueryData(chatKeys.messages(characterId));
+      // 고유한 임시 메시지 ID 생성 및 저장
+      const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      tempMessageIdRef.current = tempId;
 
       // 낙관적 업데이트: 사용자 메시지 즉시 표시
       const tempUserMessage: ChatMessage = {
-        id: `temp-${Date.now()}`,
+        id: tempId,
         role: "user",
         content: variables.content,
         createdAt: new Date().toISOString(),
       };
 
       queryClient.setQueryData(chatKeys.messages(characterId), (old: unknown) => {
-        // 캐시가 없는 경우 새로 생성
         if (!old) {
           return {
             pages: [{ messages: [tempUserMessage], nextCursor: null, hasMore: false }],
@@ -130,7 +144,6 @@ export const useSendMessage = (characterId: string) => {
 
         const oldData = old as { pages: { messages: ChatMessage[] }[]; pageParams: unknown[] };
 
-        // pages가 비어있는 경우
         if (!oldData.pages || oldData.pages.length === 0) {
           return {
             ...oldData,
@@ -146,13 +159,24 @@ export const useSendMessage = (characterId: string) => {
           ),
         };
       });
-
-      return { previousData };
     },
     onSuccess: (response) => {
-      // 서버 응답으로 캐시 업데이트 (임시 메시지를 실제 메시지로 교체 + AI 응답 추가)
+      const tempId = tempMessageIdRef.current;
+
+      // 서버 응답으로 캐시 업데이트 (임시 메시지 제거 + 실제 메시지 추가)
       queryClient.setQueryData(chatKeys.messages(characterId), (old: unknown) => {
-        if (!old) return old;
+        if (!old) {
+          return {
+            pages: [
+              {
+                messages: [response.aiMessage, response.userMessage],
+                nextCursor: null,
+                hasMore: false,
+              },
+            ],
+            pageParams: [undefined],
+          };
+        }
 
         const oldData = old as { pages: { messages: ChatMessage[] }[]; pageParams: unknown[] };
 
@@ -161,8 +185,8 @@ export const useSendMessage = (characterId: string) => {
           pages: oldData.pages.map((page, index) => {
             if (index !== 0) return page;
 
-            // 임시 메시지 제거 후 실제 메시지 추가
-            const messagesWithoutTemp = page.messages.filter((m) => !m.id.startsWith("temp-"));
+            // 해당 임시 메시지만 제거하고 실제 메시지 추가
+            const messagesWithoutTemp = page.messages.filter((m) => m.id !== tempId);
 
             return {
               ...page,
@@ -171,27 +195,59 @@ export const useSendMessage = (characterId: string) => {
           }),
         };
       });
+
+      tempMessageIdRef.current = null;
+      abortControllerRef.current = null;
     },
-    onError: (_, __, context) => {
-      // 실패 시 이전 상태로 복원
-      if (context?.previousData) {
-        queryClient.setQueryData(chatKeys.messages(characterId), context.previousData);
-      } else {
-        // previousData가 없어도 임시 메시지는 제거
+    onError: () => {
+      const tempId = tempMessageIdRef.current;
+
+      // 실패 시 임시 메시지 제거
+      if (tempId) {
         queryClient.setQueryData(chatKeys.messages(characterId), (old: unknown) => {
           if (!old) return old;
+
           const oldData = old as { pages: { messages: ChatMessage[] }[]; pageParams: unknown[] };
+
           return {
             ...oldData,
             pages: oldData.pages.map((page) => ({
               ...page,
-              messages: page.messages.filter((m) => !m.id.startsWith("temp-")),
+              messages: page.messages.filter((m) => m.id !== tempId),
             })),
           };
         });
       }
+
+      tempMessageIdRef.current = null;
+      abortControllerRef.current = null;
     },
   });
+
+  // 요청 취소 함수
+  const cancel = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  }, []);
+
+  return { ...mutation, cancel };
+};
+
+/**
+ * 메시지 캐시 정리 (쿼리 무효화)
+ */
+export const useCleanupMessages = () => {
+  const queryClient = useQueryClient();
+
+  return useCallback(
+    (characterId: string) => {
+      // 쿼리 무효화하여 다음 마운트 시 새로 fetch
+      void queryClient.invalidateQueries({ queryKey: chatKeys.messages(characterId) });
+    },
+    [queryClient],
+  );
 };
 
 /**
