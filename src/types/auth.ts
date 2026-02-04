@@ -45,6 +45,8 @@ export interface ExchangeCodeResponse {
 export interface GuestTokenResponse {
   accessToken: string;
   guestId: string;
+  usageCount: number;
+  maxUsage: number;
 }
 
 export interface LogoutResponse {

@@ -55,7 +55,7 @@ export const router = createBrowserRouter([
         element: withSuspense(StoryDetailPage),
       },
       {
-        element: <ProtectedRoute />,
+        element: <ProtectedRoute guestAllowed={false} />,
         children: [
           {
             path: "my-stories",
@@ -77,9 +77,9 @@ export const router = createBrowserRouter([
       },
     ],
   },
-  // 스토리 작성/수정 페이지 (MainLayout 밖)
+  // 스토리 작성/수정 페이지 - 일반 유저만 (MainLayout 밖)
   {
-    element: <ProtectedRoute />,
+    element: <ProtectedRoute guestAllowed={false} />,
     children: [
       {
         path: "/stories/new",
@@ -89,6 +89,12 @@ export const router = createBrowserRouter([
         path: "/stories/:storyId/edit",
         element: withSuspense(StoryFormPage),
       },
+    ],
+  },
+  // 채팅 페이지 - 게스트 포함 (MainLayout 밖)
+  {
+    element: <ProtectedRoute />,
+    children: [
       {
         path: "/chat",
         element: withSuspense(ChatPage),

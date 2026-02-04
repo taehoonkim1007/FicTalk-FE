@@ -4,6 +4,9 @@ import { Logo } from "@/components/ui/logo";
 import { useLogin } from "@/hooks/useLogin";
 
 export const LoginPage = () => {
+  // ==========================================
+  // 커스텀 훅 (로직 분리)
+  // ==========================================
   const { loginWithGoogle, loginAsGuest, goBack, isGuestLoading } = useLogin();
 
   return (

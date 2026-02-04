@@ -3,6 +3,9 @@ import { Loader2 } from "lucide-react";
 import { useAuthCallback } from "@/hooks/useAuthCallback";
 
 export const AuthCallbackPage = () => {
+  // ==========================================
+  // 커스텀 훅 (로직 분리)
+  // ==========================================
   const { isError, errorMessage } = useAuthCallback();
 
   if (isError) {

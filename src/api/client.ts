@@ -14,7 +14,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 /** 메인 API 클라이언트 */
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 180000, // AI 생성 작업을 위해 3분으로 설정
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -97,20 +97,34 @@ apiClient.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return apiClient(originalRequest);
       } catch {
+        // refresh 실패 시 인증 정보만 클리어 (리다이렉트 안함)
+        // 게스트의 경우 refresh token이 없어서 실패할 수 있음
         useAuthStore.getState().actions.clearAuth();
-        window.location.href = "/login";
         return Promise.reject(error);
       } finally {
         isRefreshing = false;
       }
     }
 
+    // 의도적으로 취소된 요청은 토스트 표시하지 않음
+    if (axios.isCancel(error)) {
+      return Promise.reject(error);
+    }
+
     if (error.response) {
-      const { status } = error.response;
+      const { status, data } = error.response;
+      const errorCode = (data as { code?: string })?.code;
 
       switch (status) {
         case 403:
-          toast.error(ERROR_MESSAGES.FORBIDDEN);
+          // 게스트 관련 에러 처리
+          if (errorCode === "GUEST_NOT_ALLOWED") {
+            toast.error(ERROR_MESSAGES.GUEST_USAGE_LIMIT);
+          } else if (errorCode === "GUEST_CHARACTER_LIMIT") {
+            toast.error(ERROR_MESSAGES.GUEST_CHARACTER_LIMIT);
+          } else {
+            toast.error(ERROR_MESSAGES.FORBIDDEN);
+          }
           break;
         case 404:
           toast.error(ERROR_MESSAGES.NOT_FOUND);

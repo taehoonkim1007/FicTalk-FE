@@ -5,13 +5,23 @@ import { useExchangeCode } from "@/queries/useAuthQueries";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 export const useAuthCallback = () => {
+  // ==========================================
+  // 외부 훅
+  // ==========================================
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { actions } = useAuthStore();
   const { mutate, isPending, isError, error } = useExchangeCode();
 
+  // ==========================================
+  // 계산된 값 (Computed)
+  // ==========================================
   const code = searchParams.get("code");
 
+  // ==========================================
+  // Effects
+  // ==========================================
+  // OAuth 코드 교환
   useEffect(() => {
     if (!code) {
       void navigate("/login", { replace: true });
@@ -20,7 +30,8 @@ export const useAuthCallback = () => {
 
     mutate(code, {
       onSuccess: (data) => {
-        actions.setAccessToken(data.accessToken);
+        // 게스트 상태 초기화하고 새 토큰으로 로그인
+        actions.loginWithToken(data.accessToken);
         void navigate("/", { replace: true });
       },
       onError: () => {
