@@ -42,7 +42,6 @@ export const StoriesPage = () => {
   // ==========================================
   // 계산된 값 (Computed)
   // ==========================================
-  const isGuest = user && isGuestUser(user);
   const { Icon, title, description, colorClass } = useCategoryMeta(categorySlug);
 
   // ==========================================
@@ -75,7 +74,7 @@ export const StoriesPage = () => {
             <h1 className="text-3xl font-bold text-white md:text-4xl">{title}</h1>
             <p className="text-stone-400 md:text-lg">{description}</p>
           </div>
-          {categorySlug === "creative" && !isGuest && (
+          {categorySlug === "creative" && user && !isGuestUser(user) && (
             <Button
               onClick={() =>
                 void navigate("/stories/new", {

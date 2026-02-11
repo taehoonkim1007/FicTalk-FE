@@ -148,6 +148,16 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
             isGeneratingSummary={isGeneratingSummary}
             handleGenerateSummary={handleGenerateSummary}
           />
+          {/* 탭 네비게이션 버튼 */}
+          <div className="mt-8 flex justify-end">
+            <Button
+              type="button"
+              onClick={() => setActiveTab("images")}
+              className="bg-emerald-600 text-white hover:bg-emerald-500"
+            >
+              다음
+            </Button>
+          </div>
         </TabsContent>
 
         <TabsContent value="images">
@@ -160,6 +170,24 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
             description={description}
             summary={summary}
           />
+          {/* 탭 네비게이션 버튼 */}
+          <div className="mt-8 flex justify-between">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setActiveTab("story")}
+              className="border-stone-700"
+            >
+              이전
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setActiveTab("characters")}
+              className="bg-emerald-600 text-white hover:bg-emerald-500"
+            >
+              다음
+            </Button>
+          </div>
         </TabsContent>
 
         <TabsContent value="characters">
@@ -206,6 +234,17 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
             handleCloseVoicePreviewModal={handleCloseVoicePreviewModal}
             handleConfirmVoice={handleConfirmVoice}
           />
+          {/* 탭 네비게이션 버튼 */}
+          <div className="mt-8 flex justify-start">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setActiveTab("images")}
+              className="border-stone-700"
+            >
+              이전
+            </Button>
+          </div>
         </TabsContent>
       </Tabs>
 
