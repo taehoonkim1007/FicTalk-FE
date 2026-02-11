@@ -79,6 +79,10 @@ export const useAuthStore = create<AuthState>()(
         }
         // 항상 hydrated 상태로 설정 (storage가 비어있어도)
         if (state) {
+          // accessToken이 있으면 isAuthenticated도 true로 동기화
+          if (state.accessToken) {
+            state.isAuthenticated = true;
+          }
           state.actions.setHasHydrated(true);
         } else {
           useAuthStore.getState().actions.setHasHydrated(true);
