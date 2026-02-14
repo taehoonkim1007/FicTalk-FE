@@ -78,4 +78,6 @@ export interface ChatMessagesResponse {
 export interface SendMessageResponse {
   userMessage: ChatMessage;
   aiMessage: ChatMessage;
+  usageCount?: number;
+  maxUsage?: number;
 }

@@ -47,9 +47,10 @@ export const useStartChat = () => {
           maxUsage: data.maxUsage,
         });
       } catch {
-        isCreatingGuest.current = false;
         toast.error(ERROR_MESSAGES.GUEST_SESSION_FAILED);
         return;
+      } finally {
+        isCreatingGuest.current = false;
       }
     }
 

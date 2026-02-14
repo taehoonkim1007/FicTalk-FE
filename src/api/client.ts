@@ -36,15 +36,26 @@ const refreshClient = axios.create({
 // ==========================================
 
 let isRefreshing = false;
-let refreshSubscribers: ((token: string) => void)[] = [];
+let refreshSubscribers: {
+  resolve: (token: string) => void;
+  reject: (error: AxiosError) => void;
+}[] = [];
 
 const onRefreshed = (token: string) => {
-  refreshSubscribers.forEach((callback) => callback(token));
+  refreshSubscribers.forEach(({ resolve }) => resolve(token));
   refreshSubscribers = [];
 };
 
-const addRefreshSubscriber = (callback: (token: string) => void) => {
-  refreshSubscribers.push(callback);
+const onRefreshFailed = (error: AxiosError) => {
+  refreshSubscribers.forEach(({ reject }) => reject(error));
+  refreshSubscribers = [];
+};
+
+const addRefreshSubscriber = (
+  resolve: (token: string) => void,
+  reject: (error: AxiosError) => void,
+) => {
+  refreshSubscribers.push({ resolve, reject });
 };
 
 // ==========================================
@@ -70,17 +81,32 @@ apiClient.interceptors.request.use(
 
 apiClient.interceptors.response.use(
   (response) => response,
-  async (error: AxiosError) => {
+  async (error: unknown) => {
+    // 의도적으로 취소된 요청은 토스트 표시하지 않음
+    if (axios.isCancel(error)) {
+      throw error;
+    }
+
+    // AxiosError가 아니면 그대로 throw
+    if (!axios.isAxiosError(error)) {
+      throw error;
+    }
+
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
     // 401 에러 처리
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       if (isRefreshing) {
-        return new Promise((resolve) => {
-          addRefreshSubscriber((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            resolve(apiClient(originalRequest));
-          });
+        return new Promise((resolve, reject) => {
+          addRefreshSubscriber(
+            (token) => {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+              resolve(apiClient(originalRequest));
+            },
+            (err) => {
+              reject(err);
+            },
+          );
         });
       }
 
@@ -97,23 +123,19 @@ apiClient.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return apiClient(originalRequest);
       } catch {
-        // refresh 실패 시 인증 정보만 클리어 (리다이렉트 안함)
-        // 게스트의 경우 refresh token이 없어서 실패할 수 있음
+        // refresh 실패 시 대기 중인 요청들에게 원래 401 에러 전달
+        onRefreshFailed(error);
         useAuthStore.getState().actions.clearAuth();
-        return Promise.reject(error);
+        window.location.href = "/login";
+        throw error;
       } finally {
         isRefreshing = false;
       }
     }
 
-    // 의도적으로 취소된 요청은 토스트 표시하지 않음
-    if (axios.isCancel(error)) {
-      return Promise.reject(error);
-    }
-
     if (error.response) {
-      const { status, data } = error.response;
-      const errorCode = (data as { code?: string })?.code;
+      const status = error.response.status;
+      const errorCode = (error.response.data as { code?: string } | undefined)?.code;
 
       switch (status) {
         case 403:
@@ -137,6 +159,6 @@ apiClient.interceptors.response.use(
       toast.error(ERROR_MESSAGES.NETWORK_ERROR);
     }
 
-    return Promise.reject(error);
+    throw error;
   },
 );

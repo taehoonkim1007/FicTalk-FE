@@ -139,4 +139,147 @@ describe("useStartChat", () => {
       expect(result.current.isPending).toBe(false);
     });
   });
+
+  describe("동시성 제어 (isCreatingGuest)", () => {
+    it("연속 호출 시 첫 번째만 API 호출된다", async () => {
+      // 첫 번째 호출이 완료되기 전에 두 번째 호출이 발생하는 시나리오
+      let resolveFirst: (value: unknown) => void;
+      mockMutateAsync.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirst = resolve;
+          }),
+      );
+
+      const { result } = renderHook(() => useStartChat(), {
+        wrapper: createWrapper(),
+      });
+
+      // 첫 번째 호출 시작 (완료되지 않음)
+      const firstCall = act(async () => {
+        await result.current.startChat(chatState);
+      });
+
+      // 두 번째 호출 (첫 번째가 진행 중이므로 무시되어야 함)
+      await act(async () => {
+        await result.current.startChat(chatState);
+      });
+
+      // 첫 번째 호출 완료
+      resolveFirst!({
+        accessToken: "token",
+        guestId: "guest",
+        usageCount: 0,
+        maxUsage: 10,
+      });
+      await firstCall;
+
+      // API는 한 번만 호출되어야 함
+      expect(mockMutateAsync).toHaveBeenCalledTimes(1);
+    });
+
+    it("첫 번째 호출 성공 후 다시 호출 가능하다 (finally 블록 검증)", async () => {
+      mockMutateAsync.mockResolvedValue({
+        accessToken: "token",
+        guestId: "guest",
+        usageCount: 0,
+        maxUsage: 10,
+      });
+
+      const { result } = renderHook(() => useStartChat(), {
+        wrapper: createWrapper(),
+      });
+
+      // 첫 번째 호출
+      await act(async () => {
+        await result.current.startChat(chatState);
+      });
+
+      await waitFor(() => {
+        expect(mockMutateAsync).toHaveBeenCalledTimes(1);
+      });
+
+      // 두 번째 호출 (첫 번째가 완료되었으므로 실행되어야 함)
+      await act(async () => {
+        await result.current.startChat(chatState);
+      });
+
+      await waitFor(() => {
+        // API가 두 번 호출되어야 함
+        expect(mockMutateAsync).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    it("첫 번째 호출 실패 후 다시 호출 가능하다 (finally 블록 검증)", async () => {
+      mockMutateAsync.mockRejectedValueOnce(new Error("First call failed"));
+      mockMutateAsync.mockResolvedValueOnce({
+        accessToken: "token",
+        guestId: "guest",
+        usageCount: 0,
+        maxUsage: 10,
+      });
+
+      const { result } = renderHook(() => useStartChat(), {
+        wrapper: createWrapper(),
+      });
+
+      // 첫 번째 호출 (실패)
+      await act(async () => {
+        await result.current.startChat(chatState);
+      });
+
+      await waitFor(() => {
+        expect(mockMutateAsync).toHaveBeenCalledTimes(1);
+      });
+
+      // 두 번째 호출 (첫 번째가 실패했지만 finally로 리셋되어 실행 가능)
+      await act(async () => {
+        await result.current.startChat(chatState);
+      });
+
+      await waitFor(() => {
+        // API가 두 번 호출되어야 함
+        expect(mockMutateAsync).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    it("빠른 연속 클릭 시 중복 요청을 방지한다", async () => {
+      // API 호출에 지연 추가
+      mockMutateAsync.mockImplementation(
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  accessToken: "token",
+                  guestId: "guest",
+                  usageCount: 0,
+                  maxUsage: 10,
+                }),
+              50,
+            ),
+          ),
+      );
+
+      const { result } = renderHook(() => useStartChat(), {
+        wrapper: createWrapper(),
+      });
+
+      // 5번의 빠른 연속 호출
+      const calls = Array(5)
+        .fill(null)
+        .map(() =>
+          act(async () => {
+            await result.current.startChat(chatState);
+          }),
+        );
+
+      await Promise.all(calls);
+
+      // 첫 번째 호출만 실행되어야 함
+      await waitFor(() => {
+        expect(mockMutateAsync).toHaveBeenCalledTimes(1);
+      });
+    });
+  });
 });

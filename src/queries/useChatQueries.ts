@@ -11,6 +11,8 @@ import {
   resetMessages,
   sendMessage,
 } from "@/api/chat";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { isGuestUser } from "@/types/auth";
 import type { AddChatCharacterRequest, ChatMessage, SendMessageRequest } from "@/types/chat";
 
 // ==========================================
@@ -195,6 +197,18 @@ export const useSendMessage = (characterId: string) => {
           }),
         };
       });
+
+      // 게스트 사용량 업데이트
+      if (response.usageCount !== undefined && response.maxUsage !== undefined) {
+        const { user, actions } = useAuthStore.getState();
+        if (user && isGuestUser(user)) {
+          actions.setUser({
+            ...user,
+            usageCount: response.usageCount,
+            maxUsage: response.maxUsage,
+          });
+        }
+      }
 
       tempMessageIdRef.current = null;
       abortControllerRef.current = null;
