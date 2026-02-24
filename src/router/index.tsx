@@ -7,35 +7,54 @@ import { MainLayout } from "@/components/layout/MainLayout";
 // Critical path - eagerly loaded
 import { HomePage } from "@/pages/HomePage";
 
+// 배포 후 청크 해시 변경으로 인한 동적 import 실패 시 페이지 새로고침
+const lazyWithRetry = (factory: () => Promise<{ default: React.ComponentType }>) =>
+  lazy(() =>
+    factory().catch(() => {
+      const hasReloaded = sessionStorage.getItem("chunk-retry");
+      if (!hasReloaded) {
+        sessionStorage.setItem("chunk-retry", "1");
+        window.location.reload();
+        return new Promise(() => {});
+      }
+      sessionStorage.removeItem("chunk-retry");
+      return Promise.reject(new Error("페이지를 불러올 수 없습니다. 새로고침해 주세요."));
+    }),
+  );
+
 // Lazy loaded routes (bundle-dynamic-imports)
-const SearchPage = lazy(() =>
+const SearchPage = lazyWithRetry(() =>
   import("@/pages/SearchPage").then((m) => ({ default: m.SearchPage })),
 );
-const StoriesPage = lazy(() =>
+const StoriesPage = lazyWithRetry(() =>
   import("@/pages/story/StoriesPage").then((m) => ({ default: m.StoriesPage })),
 );
-const StoryDetailPage = lazy(() =>
+const StoryDetailPage = lazyWithRetry(() =>
   import("@/pages/story/StoryDetailPage").then((m) => ({ default: m.StoryDetailPage })),
 );
-const StoryFormPage = lazy(() =>
+const StoryFormPage = lazyWithRetry(() =>
   import("@/pages/story/StoryFormPage").then((m) => ({ default: m.StoryFormPage })),
 );
-const MyStoriesPage = lazy(() =>
+const MyStoriesPage = lazyWithRetry(() =>
   import("@/pages/story/MyStoriesPage").then((m) => ({ default: m.MyStoriesPage })),
 );
-const CharactersPage = lazy(() =>
+const CharactersPage = lazyWithRetry(() =>
   import("@/pages/character/CharactersPage").then((m) => ({ default: m.CharactersPage })),
 );
-const CharacterDetailPage = lazy(() =>
+const CharacterDetailPage = lazyWithRetry(() =>
   import("@/pages/character/CharacterDetailPage").then((m) => ({
     default: m.CharacterDetailPage,
   })),
 );
-const LoginPage = lazy(() => import("@/pages/LoginPage").then((m) => ({ default: m.LoginPage })));
-const AuthCallbackPage = lazy(() =>
+const LoginPage = lazyWithRetry(() =>
+  import("@/pages/LoginPage").then((m) => ({ default: m.LoginPage })),
+);
+const AuthCallbackPage = lazyWithRetry(() =>
   import("@/pages/AuthCallbackPage").then((m) => ({ default: m.AuthCallbackPage })),
 );
-const ChatPage = lazy(() => import("@/pages/chat/ChatPage").then((m) => ({ default: m.ChatPage })));
+const ChatPage = lazyWithRetry(() =>
+  import("@/pages/chat/ChatPage").then((m) => ({ default: m.ChatPage })),
+);
 
 export const router = createBrowserRouter([
   {
