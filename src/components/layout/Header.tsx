@@ -48,7 +48,10 @@ export const Header = () => {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         {/* Mobile Search Overlay */}
         {isSearchOpen ? (
-          <form onSubmit={handleSearch} className="flex w-full items-center gap-2 md:hidden">
+          <form
+            onSubmit={handleSearch}
+            className="absolute inset-0 z-50 flex items-center gap-2 bg-[#121212] px-4 md:hidden"
+          >
             <Search className="h-4 w-4 text-stone-500" />
             <input
               type="text"

@@ -42,6 +42,8 @@ export const ChatPage = () => {
   const [processedCharacterId, setProcessedCharacterId] = useState<string | null>(null);
   // 채팅 모드 (text/voice)
   const [chatMode, setChatMode] = useState<ChatMode>("text");
+  // 모바일 사이드바 토글
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // 오디오 플레이어
   const { playAudio, isPlaying: isAudioPlaying, isLoading: isTTSLoading } = useAudioPlayer();
@@ -211,7 +213,7 @@ export const ChatPage = () => {
   const messages = messagesData?.pages.flatMap((page) => page.messages) || [];
 
   return (
-    <div className="mx-auto flex h-screen max-w-7xl bg-stone-950">
+    <div className="mx-auto flex h-screen w-full max-w-7xl overflow-hidden bg-stone-950">
       {/* 채팅 영역 */}
       <div className="flex flex-1 flex-col">
         {selectedCharacter ? (
@@ -224,6 +226,7 @@ export const ChatPage = () => {
               onBack={handleBack}
               onReset={handleResetMessages}
               isResetting={resetMessages.isPending}
+              onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
             />
 
             {/* 메시지 */}
@@ -251,7 +254,7 @@ export const ChatPage = () => {
         ) : (
           <div className="flex flex-1 flex-col">
             {/* 빈 상태 헤더 */}
-            <header className="flex h-24 items-center border-b border-stone-800 bg-stone-900 px-4">
+            <header className="flex h-16 items-center border-b border-stone-800 bg-stone-900 px-4 md:h-24">
               <Button variant="ghost" size="icon" onClick={handleBack} className="text-stone-400">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
@@ -277,15 +280,40 @@ export const ChatPage = () => {
         )}
       </div>
 
-      {/* 사이드바 */}
-      <ChatSidebar
-        characters={characters}
-        selectedCharacterId={selectedCharacter?.id || null}
-        onSelectCharacter={handleSelectCharacter}
-        onRemoveCharacter={handleRemoveCharacter}
-        onAddCharacter={() => setIsModalOpen(true)}
-        isRemoving={removeCharacter.isPending}
-      />
+      {/* 데스크탑 사이드바 */}
+      <div className="hidden md:block">
+        <ChatSidebar
+          characters={characters}
+          selectedCharacterId={selectedCharacter?.id || null}
+          onSelectCharacter={handleSelectCharacter}
+          onRemoveCharacter={handleRemoveCharacter}
+          onAddCharacter={() => setIsModalOpen(true)}
+          isRemoving={removeCharacter.isPending}
+        />
+      </div>
+
+      {/* 모바일 사이드바 오버레이 */}
+      {isSidebarOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setIsSidebarOpen(false)} />
+          <div className="absolute top-0 right-0 h-full w-[80vw] max-w-[22rem]">
+            <ChatSidebar
+              characters={characters}
+              selectedCharacterId={selectedCharacter?.id || null}
+              onSelectCharacter={(character) => {
+                handleSelectCharacter(character);
+                setIsSidebarOpen(false);
+              }}
+              onRemoveCharacter={handleRemoveCharacter}
+              onAddCharacter={() => {
+                setIsModalOpen(true);
+                setIsSidebarOpen(false);
+              }}
+              isRemoving={removeCharacter.isPending}
+            />
+          </div>
+        </div>
+      )}
 
       {/* 캐릭터 선택 모달 */}
       <CharacterSelectModal

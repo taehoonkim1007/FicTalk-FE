@@ -57,8 +57,8 @@ export const ChatInput = ({ onSend, isSending, isError, chatMode }: ChatInputPro
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-stone-950 p-4">
-      <div className="mx-auto flex max-w-4xl items-end gap-3 rounded-2xl bg-stone-800 p-3">
+    <form onSubmit={handleSubmit} className="bg-stone-950 p-2 md:p-4">
+      <div className="mx-auto flex max-w-4xl items-end gap-3 rounded-2xl bg-stone-800 p-2 md:p-3">
         {/* 메시지 입력 */}
         <textarea
           ref={textareaRef}

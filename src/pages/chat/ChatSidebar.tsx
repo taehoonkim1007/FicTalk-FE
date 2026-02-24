@@ -49,9 +49,9 @@ export const ChatSidebar = ({
   const canAddCharacter = characters.length < maxCharacters;
 
   return (
-    <aside className="flex w-[22rem] flex-col border-l border-stone-800 bg-stone-900">
+    <aside className="flex h-full w-full flex-col border-l border-stone-800 bg-stone-900 md:w-[22rem]">
       {/* 헤더 */}
-      <div className="flex h-24 items-center justify-between border-b border-stone-800 px-4">
+      <div className="flex h-16 items-center justify-between border-b border-stone-800 px-4 md:h-24">
         <div className="flex items-center gap-2">
           <h2 className="font-bold text-white">대화 목록</h2>
           {isGuest && (
@@ -154,7 +154,7 @@ export const ChatSidebar = ({
                         type="button"
                         onClick={(e) => e.stopPropagation()}
                         disabled={isRemoving}
-                        className="absolute top-1/2 right-2 z-10 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-stone-700 text-stone-400 group-hover:flex hover:bg-red-500 hover:text-white"
+                        className="absolute top-1/2 right-2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-stone-700 text-stone-400 hover:bg-red-500 hover:text-white [@media(hover:hover)]:hidden [@media(hover:hover)]:group-hover:flex"
                         title="대화 상대 제거"
                       >
                         <Trash2 className="h-4 w-4" />

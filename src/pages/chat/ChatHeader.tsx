@@ -1,4 +1,4 @@
-import { ArrowLeft, Keyboard, MessageCircle, RotateCcw, Volume2 } from "lucide-react";
+import { ArrowLeft, Keyboard, MessageCircle, RotateCcw, Users, Volume2 } from "lucide-react";
 
 import {
   AlertDialog,
@@ -28,6 +28,7 @@ interface ChatHeaderProps {
   onBack: () => void;
   onReset: () => void;
   isResetting: boolean;
+  onToggleSidebar?: () => void;
 }
 
 export const ChatHeader = ({
@@ -37,6 +38,7 @@ export const ChatHeader = ({
   onBack,
   onReset,
   isResetting,
+  onToggleSidebar,
 }: ChatHeaderProps) => {
   // ==========================================
   // 외부 상태 (Store)
@@ -51,14 +53,14 @@ export const ChatHeader = ({
   const guestUsageInfo = isGuest ? `${user.usageCount}/${user.maxUsage}` : null;
 
   return (
-    <header className="flex h-24 items-center gap-4 border-b border-stone-800 bg-stone-900 px-4">
+    <header className="flex h-16 items-center gap-2 overflow-hidden border-b border-stone-800 bg-stone-900 px-2 md:h-24 md:gap-4 md:px-4">
       {/* 뒤로가기 */}
-      <Button variant="ghost" size="icon" onClick={onBack} className="text-stone-400">
+      <Button variant="ghost" size="icon" onClick={onBack} className="shrink-0 text-stone-400">
         <ArrowLeft className="h-5 w-5" />
       </Button>
 
       {/* 캐릭터 아바타 */}
-      <Avatar className="h-16 w-16">
+      <Avatar className="h-10 w-10 shrink-0 md:h-16 md:w-16">
         {character.profileImage && (
           <AvatarImage src={getImageUrl(character.profileImage) || ""} alt={character.name} />
         )}
@@ -77,7 +79,7 @@ export const ChatHeader = ({
 
       {/* 게스트 사용량 표시 */}
       {isGuest && guestUsageInfo && (
-        <div className="flex items-center gap-1.5 rounded-full bg-stone-800 px-3 py-1.5 text-xs">
+        <div className="hidden items-center gap-1.5 rounded-full bg-stone-800 px-3 py-1.5 text-xs md:flex">
           <MessageCircle className="h-3.5 w-3.5 text-emerald-500" />
           <span className="text-stone-400">
             <span className="text-emerald-400">{guestUsageInfo}</span>회
@@ -93,7 +95,7 @@ export const ChatHeader = ({
             <button
               disabled={!hasVoice}
               className={cn(
-                "flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold transition-all duration-300",
+                "flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold transition-all duration-300",
                 hasVoice
                   ? "border-stone-700 bg-stone-800 text-stone-400 hover:border-stone-600 hover:text-stone-300"
                   : "cursor-not-allowed border-stone-800 bg-stone-900 text-stone-600 opacity-50",
@@ -126,12 +128,24 @@ export const ChatHeader = ({
         // Voice → Text 전환은 바로 실행
         <button
           onClick={() => onModeChange("text")}
-          className="flex items-center gap-2 rounded-full border border-violet-500 bg-violet-500/10 px-3 py-1.5 text-xs font-bold text-violet-400 shadow-[0_0_15px_rgba(139,92,246,0.5)] transition-all duration-300 hover:bg-violet-500/20"
+          className="flex shrink-0 items-center gap-2 rounded-full border border-violet-500 bg-violet-500/10 px-3 py-1.5 text-xs font-bold text-violet-400 shadow-[0_0_15px_rgba(139,92,246,0.5)] transition-all duration-300 hover:bg-violet-500/20"
           title="텍스트 모드로 전환"
         >
           <Volume2 className="h-3.5 w-3.5" />
           <span className="tracking-wider uppercase">Voice</span>
         </button>
+      )}
+
+      {/* 사이드바 토글 (모바일) */}
+      {onToggleSidebar && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onToggleSidebar}
+          className="shrink-0 text-stone-400 md:hidden"
+        >
+          <Users className="h-5 w-5" />
+        </Button>
       )}
 
       {/* 대화 초기화 버튼 */}

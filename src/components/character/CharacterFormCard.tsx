@@ -170,7 +170,7 @@ const ViewCard = ({
       )}
 
       {/* 4. 액션 버튼 */}
-      <div className="absolute top-3 right-3 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+      <div className="absolute top-3 right-3 flex gap-1 opacity-100 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100">
         <button
           onClick={() => void onGenerateVoice()}
           disabled={isGeneratingVoice}

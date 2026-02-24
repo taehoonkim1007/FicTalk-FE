@@ -66,13 +66,13 @@ export const StoriesPage = () => {
     <main className="pb-20">
       <section className="mx-auto max-w-7xl px-4 py-8">
         {/* 카테고리 헤더 */}
-        <div className="mb-8 flex flex-col items-start gap-4 border-b border-stone-800 pb-8 md:items-center md:text-center">
+        <div className="mb-8 flex flex-col items-center gap-4 border-b border-stone-800 pb-8 text-center">
           <div className={`rounded-full bg-stone-900 p-3 ring-1 ring-white/10 ${colorClass}`}>
             <Icon className="h-8 w-8" />
           </div>
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-white md:text-4xl">{title}</h1>
-            <p className="text-stone-400 md:text-lg">{description}</p>
+            <h1 className="text-2xl font-bold text-white md:text-4xl">{title}</h1>
+            <p className="text-sm text-stone-400 md:text-lg">{description}</p>
           </div>
           {categorySlug === "creative" && user && !isGuestUser(user) && (
             <Button
