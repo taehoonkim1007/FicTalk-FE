@@ -1,7 +1,13 @@
 interface ImportMetaEnv {
   readonly VITE_API_URL: string;
   readonly VITE_APP_TITLE: string;
-  // 다른 환경 변수들...
+  readonly VITE_STATIC_BASE_URL: string;
+  readonly VITE_GA_MEASUREMENT_ID?: string;
+}
+
+interface Window {
+  dataLayer: unknown[];
+  gtag: (...args: unknown[]) => void;
 }
 
 interface ImportMeta {

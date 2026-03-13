@@ -2,6 +2,7 @@ import { lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
 
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { AnalyticsLayout } from "@/components/common/Analytics";
 import { withSuspense } from "@/components/common/RouteSuspense";
 import { MainLayout } from "@/components/layout/MainLayout";
 // Critical path - eagerly loaded
@@ -58,74 +59,79 @@ const ChatPage = lazyWithRetry(() =>
 
 export const router = createBrowserRouter([
   {
-    path: "/",
-    element: <MainLayout />,
+    element: <AnalyticsLayout />,
     children: [
       {
-        index: true,
-        element: <HomePage />,
+        path: "/",
+        element: <MainLayout />,
+        children: [
+          {
+            index: true,
+            element: <HomePage />,
+          },
+          {
+            path: "search",
+            element: withSuspense(SearchPage),
+          },
+          {
+            path: "stories/:storyId",
+            element: withSuspense(StoryDetailPage),
+          },
+          {
+            element: <ProtectedRoute guestAllowed={false} />,
+            children: [
+              {
+                path: "my-stories",
+                element: withSuspense(MyStoriesPage),
+              },
+            ],
+          },
+          {
+            path: "characters/:characterId",
+            element: withSuspense(CharacterDetailPage),
+          },
+          {
+            path: ":categorySlug/characters",
+            element: withSuspense(CharactersPage),
+          },
+          {
+            path: ":categorySlug",
+            element: withSuspense(StoriesPage),
+          },
+        ],
       },
-      {
-        path: "search",
-        element: withSuspense(SearchPage),
-      },
-      {
-        path: "stories/:storyId",
-        element: withSuspense(StoryDetailPage),
-      },
+      // 스토리 작성/수정 페이지 - 일반 유저만 (MainLayout 밖)
       {
         element: <ProtectedRoute guestAllowed={false} />,
         children: [
           {
-            path: "my-stories",
-            element: withSuspense(MyStoriesPage),
+            path: "/stories/new",
+            element: withSuspense(StoryFormPage),
+          },
+          {
+            path: "/stories/:storyId/edit",
+            element: withSuspense(StoryFormPage),
+          },
+        ],
+      },
+      // 채팅 페이지 - 게스트 포함 (MainLayout 밖)
+      {
+        element: <ProtectedRoute />,
+        children: [
+          {
+            path: "/chat",
+            element: withSuspense(ChatPage),
           },
         ],
       },
       {
-        path: "characters/:characterId",
-        element: withSuspense(CharacterDetailPage),
+        path: "/login",
+        element: withSuspense(LoginPage),
       },
       {
-        path: ":categorySlug/characters",
-        element: withSuspense(CharactersPage),
-      },
-      {
-        path: ":categorySlug",
-        element: withSuspense(StoriesPage),
+        path: "/auth/callback",
+        element: withSuspense(AuthCallbackPage),
       },
     ],
-  },
-  // 스토리 작성/수정 페이지 - 일반 유저만 (MainLayout 밖)
-  {
-    element: <ProtectedRoute guestAllowed={false} />,
-    children: [
-      {
-        path: "/stories/new",
-        element: withSuspense(StoryFormPage),
-      },
-      {
-        path: "/stories/:storyId/edit",
-        element: withSuspense(StoryFormPage),
-      },
-    ],
-  },
-  // 채팅 페이지 - 게스트 포함 (MainLayout 밖)
-  {
-    element: <ProtectedRoute />,
-    children: [
-      {
-        path: "/chat",
-        element: withSuspense(ChatPage),
-      },
-    ],
-  },
-  {
-    path: "/login",
-    element: withSuspense(LoginPage),
-  },
-  {
-    path: "/auth/callback",
-    element: withSuspense(AuthCallbackPage),
   },
 ]);
