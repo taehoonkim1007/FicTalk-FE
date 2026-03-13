@@ -65,5 +65,12 @@ export default defineConfig([
       "react-refresh/only-export-components": "off",
     },
   },
+  // gtag.js는 arguments 객체를 dataLayer에 push해야 정상 동작
+  {
+    files: ["**/lib/analytics.ts"],
+    rules: {
+      "prefer-rest-params": "off",
+    },
+  },
   eslintConfigPrettier,
 ]);

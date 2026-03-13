@@ -9,8 +9,8 @@ export const initGA = () => {
   document.head.appendChild(script);
 
   window.dataLayer = window.dataLayer || [];
-  window.gtag = (...args: unknown[]) => {
-    window.dataLayer.push(...args);
+  window.gtag = function () {
+    window.dataLayer.push(arguments);
   };
   window.gtag("js", new Date());
   window.gtag("config", GA_ID, { send_page_view: false });
