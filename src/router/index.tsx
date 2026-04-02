@@ -56,6 +56,9 @@ const AuthCallbackPage = lazyWithRetry(() =>
 const ChatPage = lazyWithRetry(() =>
   import("@/pages/chat/ChatPage").then((m) => ({ default: m.ChatPage })),
 );
+const ProfilePage = lazyWithRetry(() =>
+  import("@/pages/ProfilePage").then((m) => ({ default: m.ProfilePage })),
+);
 
 export const router = createBrowserRouter([
   {
@@ -83,6 +86,10 @@ export const router = createBrowserRouter([
               {
                 path: "my-stories",
                 element: withSuspense(MyStoriesPage),
+              },
+              {
+                path: "profile",
+                element: withSuspense(ProfilePage),
               },
             ],
           },

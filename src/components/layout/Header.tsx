@@ -1,14 +1,22 @@
 import { type FormEvent, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
-import { BookOpen, Loader2, LogIn, LogOut, MessageSquare, Search, X } from "lucide-react";
+import { BookOpen, LogIn, LogOut, MessageSquare, Search, User, X } from "lucide-react";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Logo } from "@/components/ui/logo";
 import { useLogout } from "@/hooks/useLogout";
 import { useCategories } from "@/queries/useCategoriesQueries";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { isGuestUser } from "@/types/auth";
+import { isAuthenticatedUser, isGuestUser } from "@/types/auth";
 
 export const Header = () => {
   const navigate = useNavigate();
@@ -138,18 +146,31 @@ export const Header = () => {
               </Button>
             )}
 
-            {/* 일반 유저: 로그아웃 버튼 */}
-            {isAuthenticated && !isGuest && (
-              <Button size="sm" variant="white" onClick={logout} disabled={isLoggingOut}>
-                {isLoggingOut ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    <LogOut className="h-4 w-4 rotate-180 md:mr-2" />
-                    <span className="hidden md:inline">로그아웃</span>
-                  </>
-                )}
-              </Button>
+            {/* 일반 유저: 프로필 드롭다운 */}
+            {isAuthenticated && user && isAuthenticatedUser(user) && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="icon" variant="ghost" className="rounded-full">
+                    <Avatar size="sm">
+                      <AvatarImage src={user.profileImage ?? undefined} alt={user.name} />
+                      <AvatarFallback>
+                        <User className="h-3 w-3" />
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40">
+                  <DropdownMenuItem onClick={() => void navigate("/profile")}>
+                    <User className="mr-2 h-4 w-4" />
+                    회원정보
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={logout} disabled={isLoggingOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    로그아웃
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
 
             {/* 비인증 (로딩 중): 로그인 버튼 */}

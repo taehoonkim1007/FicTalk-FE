@@ -5,6 +5,7 @@
 export const SUCCESS_MESSAGES = {
   // Auth
   LOGOUT: "로그아웃 되었습니다.",
+  ACCOUNT_DELETED: "회원탈퇴가 완료되었습니다.",
 
   // Story
   STORY_CREATED: "스토리가 작성되었습니다.",
@@ -50,6 +51,7 @@ export const ERROR_MESSAGES = {
 
   // Auth
   GUEST_SESSION_FAILED: "게스트 세션 생성에 실패했습니다.",
+  ACCOUNT_DELETE_FAILED: "회원탈퇴에 실패했습니다.",
 
   // Story
   STORY_CREATE_FAILED: "스토리 작성에 실패했습니다.",
