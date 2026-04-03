@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ guestAllowed = true }: ProtectedRouteProps) => {
-  const { isAuthenticated, accessToken, user, _hasHydrated } = useAuthStore();
+  const { accessToken, user, _hasHydrated } = useAuthStore();
   const location = useLocation();
   const { isLoading, data: fetchedUser } = useCurrentUser(!!accessToken);
 
@@ -34,7 +34,7 @@ export const ProtectedRoute = ({ guestAllowed = true }: ProtectedRouteProps) => 
   const currentUser = user || fetchedUser;
 
   // 인증되지 않았으면 로그인 페이지로
-  if (!isAuthenticated && !currentUser) {
+  if (!accessToken && !currentUser) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

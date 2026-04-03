@@ -21,7 +21,7 @@ import { isAuthenticatedUser, isGuestUser } from "@/types/auth";
 export const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, user } = useAuthStore();
+  const { accessToken, user } = useAuthStore();
   const { logout, isLoggingOut } = useLogout();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -94,7 +94,7 @@ export const Header = () => {
 
           <div className="flex items-center gap-3">
             {/* 일반 유저만: 내 스토리 */}
-            {isAuthenticated && !isGuest && (
+            {accessToken && !isGuest && (
               <Button
                 size="sm"
                 variant="ghost"
@@ -107,7 +107,7 @@ export const Header = () => {
             )}
 
             {/* 모든 인증 유저: 내 대화 */}
-            {isAuthenticated && (
+            {accessToken && (
               <Button
                 size="sm"
                 variant="ghost"
@@ -147,7 +147,7 @@ export const Header = () => {
             )}
 
             {/* 일반 유저: 프로필 드롭다운 */}
-            {isAuthenticated && user && isAuthenticatedUser(user) && (
+            {accessToken && user && isAuthenticatedUser(user) && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button size="icon" variant="ghost" className="rounded-full">
@@ -174,7 +174,7 @@ export const Header = () => {
             )}
 
             {/* 비인증 (로딩 중): 로그인 버튼 */}
-            {!isAuthenticated && (
+            {!accessToken && (
               <Button size="sm" variant="white" onClick={() => void navigate("/login")}>
                 <LogIn className="h-4 w-4 md:mr-2" />
                 <span className="hidden md:inline">로그인</span>

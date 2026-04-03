@@ -39,12 +39,12 @@ export const MyStoriesPage = () => {
   // ==========================================
   // 외부 상태 (Store)
   // ==========================================
-  const { isAuthenticated } = useAuthStore();
+  const { accessToken } = useAuthStore();
 
   // ==========================================
   // 서버 상태 (React Query)
   // ==========================================
-  const { data: stories = [], isLoading, isError } = useMyStories(isAuthenticated);
+  const { data: stories = [], isLoading, isError } = useMyStories(!!accessToken);
   const { mutate: deleteStory, isPending: isDeleting } = useDeleteStory();
 
   // ==========================================
@@ -86,7 +86,7 @@ export const MyStoriesPage = () => {
     });
   };
 
-  if (!isAuthenticated) {
+  if (!accessToken) {
     return (
       <EmptyState
         title="로그인이 필요합니다."

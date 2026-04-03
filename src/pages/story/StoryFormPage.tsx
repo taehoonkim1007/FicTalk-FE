@@ -19,7 +19,7 @@ export const StoryFormPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { storyId } = useParams<{ storyId: string }>();
-  const { isAuthenticated } = useAuthStore();
+  const { accessToken } = useAuthStore();
 
   // ==========================================
   // 서버 상태 (React Query)
@@ -99,7 +99,7 @@ export const StoryFormPage = () => {
     }
   };
 
-  if (!isAuthenticated) {
+  if (!accessToken) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-stone-950">
         <p className="text-stone-400">로그인이 필요합니다.</p>

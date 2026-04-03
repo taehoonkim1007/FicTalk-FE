@@ -9,7 +9,6 @@ import type { CurrentUser } from "@/types/auth";
 interface AuthState {
   user: CurrentUser | null;
   accessToken: string | null;
-  isAuthenticated: boolean;
   guestId: string | undefined;
   _hasHydrated: boolean;
 
@@ -27,66 +26,64 @@ interface AuthState {
 // ==========================================
 // Store Implementation
 // ==========================================
+
+// onRehydrateStorage에서 useAuthStore TDZ 회피를 위해 set 참조를 캡처
+let storeSet: ((partial: Partial<AuthState>) => void) | undefined;
+
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
-      user: null,
-      accessToken: null,
-      isAuthenticated: false,
-      guestId: undefined,
-      _hasHydrated: false,
+    (set) => {
+      storeSet = set;
 
-      actions: {
-        setUser: (user: CurrentUser) => {
-          set({ user, isAuthenticated: true });
-        },
+      return {
+        user: null,
+        accessToken: null,
+        guestId: undefined,
+        _hasHydrated: false,
 
-        setAccessToken: (token: string) => {
-          set({ accessToken: token, isAuthenticated: true });
-        },
+        actions: {
+          setUser: (user: CurrentUser) => {
+            set({ user });
+          },
 
-        setGuestId: (guestId: string) => {
-          set({ guestId });
-        },
+          setAccessToken: (token: string) => {
+            set({ accessToken: token });
+          },
 
-        loginWithToken: (token: string) => {
-          // 게스트 상태 초기화하고 새 토큰으로 로그인
-          set({ user: null, accessToken: token, isAuthenticated: true, guestId: undefined });
-        },
+          setGuestId: (guestId: string) => {
+            set({ guestId });
+          },
 
-        logout: () => {
-          set({ user: null, accessToken: null, isAuthenticated: false });
-        },
+          loginWithToken: (token: string) => {
+            // 게스트 상태 초기화하고 새 토큰으로 로그인
+            set({ user: null, accessToken: token, guestId: undefined });
+          },
 
-        clearAuth: () => {
-          set({ user: null, accessToken: null, isAuthenticated: false, guestId: undefined });
-        },
+          logout: () => {
+            set({ user: null, accessToken: null });
+          },
 
-        setHasHydrated: (state: boolean) => {
-          set({ _hasHydrated: state });
+          clearAuth: () => {
+            set({ user: null, accessToken: null, guestId: undefined });
+          },
+
+          setHasHydrated: (state: boolean) => {
+            set({ _hasHydrated: state });
+          },
         },
-      },
-    }),
+      };
+    },
     {
       name: "auth-storage",
       partialize: (state) => ({
         accessToken: state.accessToken,
         guestId: state.guestId,
       }),
-      onRehydrateStorage: () => (state, error) => {
+      onRehydrateStorage: () => (_state, error) => {
         if (error) {
           console.error("Auth store rehydration error:", error);
         }
-        // 항상 hydrated 상태로 설정 (storage가 비어있어도)
-        if (state) {
-          // accessToken이 있으면 isAuthenticated도 true로 동기화
-          if (state.accessToken) {
-            state.isAuthenticated = true;
-          }
-          state.actions.setHasHydrated(true);
-        } else {
-          useAuthStore.getState().actions.setHasHydrated(true);
-        }
+        storeSet?.({ _hasHydrated: true });
       },
     },
   ),

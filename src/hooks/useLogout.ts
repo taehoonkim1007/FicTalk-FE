@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { SUCCESS_MESSAGES } from "@/constants/messages";
-import { useLogout as useLogoutMutation } from "@/queries/useAuthQueries";
+import { authKeys, useLogout as useLogoutMutation } from "@/queries/useAuthQueries";
 import { chatKeys } from "@/queries/useChatQueries";
 import { useAuthStore } from "@/stores/useAuthStore";
 
@@ -24,14 +24,15 @@ export const useLogout = () => {
   const logout = () => {
     mutate(undefined, {
       onSuccess: () => {
-        // 채팅 관련 캐시 초기화 (유저 데이터가 게스트에게 보이지 않도록)
         queryClient.removeQueries({ queryKey: chatKeys.all });
+        queryClient.removeQueries({ queryKey: authKeys.currentUser() });
         actions.clearAuth();
         toast.success(SUCCESS_MESSAGES.LOGOUT);
         void navigate("/");
       },
       onError: () => {
         queryClient.removeQueries({ queryKey: chatKeys.all });
+        queryClient.removeQueries({ queryKey: authKeys.currentUser() });
         actions.clearAuth();
         void navigate("/");
       },
