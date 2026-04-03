@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { generateTTSSample } from "@/api/stories";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingState } from "@/components/common/LoadingState";
+import { ChatGuideTour } from "@/components/guide/ChatGuideTour";
 import { Button } from "@/components/ui/button";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import {
@@ -314,6 +315,9 @@ export const ChatPage = () => {
           </div>
         </div>
       )}
+
+      {/* 채팅 가이드 투어 */}
+      {selectedCharacter && <ChatGuideTour />}
 
       {/* 캐릭터 선택 모달 */}
       <CharacterSelectModal

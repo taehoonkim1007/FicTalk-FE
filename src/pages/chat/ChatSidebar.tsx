@@ -52,7 +52,7 @@ export const ChatSidebar = ({
     <aside className="flex h-full w-full flex-col border-l border-stone-800 bg-stone-900 md:w-[22rem]">
       {/* 헤더 */}
       <div className="flex h-16 items-center justify-between border-b border-stone-800 px-4 md:h-24">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" data-tour="chat-character-limit">
           <h2 className="font-bold text-white">대화 목록</h2>
           {isGuest && (
             <div className="flex items-center gap-1 rounded-full bg-stone-800 px-2 py-1 text-xs">
@@ -97,8 +97,8 @@ export const ChatSidebar = ({
           </div>
         ) : (
           <ul className="space-y-1">
-            {characters.map((character) => (
-              <li key={character.id}>
+            {characters.map((character, index) => (
+              <li key={character.id} {...(index === 0 && { "data-tour": "chat-character-card" })}>
                 <div
                   role="button"
                   tabIndex={0}

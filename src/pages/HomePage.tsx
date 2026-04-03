@@ -24,12 +24,19 @@ export const HomePage = () => {
     <main className="pb-20">
       {/* Hero Carousel */}
       <section className="mx-auto mt-6 max-w-7xl px-4">
-        <HeroCarousel slides={heroSlides} isLoading={isHeroLoading} />
+        <div className="relative">
+          <HeroCarousel slides={heroSlides} isLoading={isHeroLoading} />
+          {/* 투어 앵커: 캐러셀 하단 CTA 영역만 하이라이트 */}
+          <div
+            data-tour="hero-chat"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-48"
+          />
+        </div>
       </section>
 
       {/* 탭 네비게이션 */}
       <div className="mx-auto mt-4 max-w-7xl px-4">
-        <div className="flex gap-2">
+        <div className="flex gap-2" data-tour="category-tabs">
           <Button
             variant={activeTab === "stories" ? "secondary" : "ghost"}
             onClick={() => setActiveTab("stories")}

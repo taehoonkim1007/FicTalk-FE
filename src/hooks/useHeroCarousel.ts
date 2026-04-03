@@ -248,18 +248,33 @@ export const useHeroCarousel = (slides: HeroSlide[]) => {
   // ==========================================
   // Effects
   // ==========================================
-  // 모바일 감지 + 컨테이너 너비 추적
+  // 모바일 감지 + 컨테이너 너비 추적 (ResizeObserver)
   useEffect(() => {
-    const handleResize = () => {
+    const syncDimensions = () => {
       setIsMobile(window.innerWidth < HERO_CAROUSEL.MOBILE_BREAKPOINT);
       if (containerRef.current) {
         setContainerWidth(containerRef.current.offsetWidth);
       }
+      // 리사이즈 중 진행 중인 애니메이션 초기화 (stale transform 방지)
+      setIsAnimating(false);
+      isTransitioningRef.current = false;
     };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+
+    syncDimensions();
+
+    const observer = new ResizeObserver(() => syncDimensions());
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    window.addEventListener("resize", syncDimensions);
+
+    return () => {
+      window.removeEventListener("resize", syncDimensions);
+      observer.disconnect();
+    };
+    // slides.length: 로딩 완료 후 containerRef가 마운트되면 ResizeObserver 재설정
+  }, [slides.length]);
 
   // 초기화 및 Autoplay 시작
   useEffect(() => {

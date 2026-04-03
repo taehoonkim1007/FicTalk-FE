@@ -1,4 +1,4 @@
-const STATIC_BASE_URL = (import.meta.env.VITE_STATIC_BASE_URL as string) ?? "";
+const STATIC_BASE_URL = import.meta.env.VITE_STATIC_BASE_URL ?? "";
 
 export const getImageUrl = (path: string | null | undefined): string | undefined => {
   if (!path) return undefined;
