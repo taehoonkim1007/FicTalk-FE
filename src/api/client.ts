@@ -133,7 +133,7 @@ apiClient.interceptors.response.use(
         // 401 등 인증 오류 시 세션 삭제
         onRefreshFailed(error);
         useAuthStore.getState().actions.clearAuth();
-        window.location.href = "/login";
+        window.location.href = "/";
         throw error;
       } finally {
         isRefreshing = false;
