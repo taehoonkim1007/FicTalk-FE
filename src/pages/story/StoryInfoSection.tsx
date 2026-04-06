@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface StoryInfoSectionProps {
   title: string;
@@ -78,21 +79,42 @@ export const StoryInfoSection = ({
             줄거리 *
           </Label>
           <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleGenerateSummary}
-              disabled={isGeneratingSummary || !title.trim() || !description.trim()}
-              className="border-emerald-700 bg-transparent text-emerald-400 hover:bg-emerald-900/50 hover:text-emerald-300"
-            >
-              {isGeneratingSummary ? (
-                <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-              ) : (
-                <Sparkles className="mr-1 h-4 w-4" />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-flex">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleGenerateSummary}
+                    disabled={isGeneratingSummary || !title.trim() || !description.trim()}
+                    className="border-emerald-700 bg-transparent text-emerald-400 hover:bg-emerald-900/50 hover:text-emerald-300"
+                  >
+                    {isGeneratingSummary ? (
+                      <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="mr-1 h-4 w-4" />
+                    )}
+                    AI 생성
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              {!isGeneratingSummary && (!title.trim() || !description.trim()) && (
+                <TooltipContent side="bottom">
+                  <p className="mb-2.5 text-stone-200">
+                    ✨ 제목, 한줄 소개를 입력하시면 사용할 수 있어요
+                  </p>
+                  <ul className="space-y-1.5">
+                    <li className={title.trim() ? "text-emerald-400" : "text-red-400"}>
+                      {title.trim() ? "✓" : "✗"} 제목
+                    </li>
+                    <li className={description.trim() ? "text-emerald-400" : "text-red-400"}>
+                      {description.trim() ? "✓" : "✗"} 한줄 소개
+                    </li>
+                  </ul>
+                </TooltipContent>
               )}
-              AI 생성
-            </Button>
+            </Tooltip>
             <span className="text-sm text-stone-500">{summary.length} / 4000</span>
           </div>
         </div>

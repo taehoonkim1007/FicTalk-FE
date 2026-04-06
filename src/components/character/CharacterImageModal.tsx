@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/messages";
 import { useGenerateProfileImage } from "@/queries/useStoriesQueries";
 
@@ -196,19 +197,60 @@ export const CharacterImageModal = ({
             </>
           ) : (
             <>
-              <Button
-                type="button"
-                onClick={handleGenerate}
-                disabled={isGenerating}
-                className="bg-emerald-600 text-white hover:bg-emerald-500"
-              >
-                {isGenerating ? (
-                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="mr-1 h-4 w-4" />
-                )}
-                AI 생성
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex">
+                      <Button
+                        type="button"
+                        onClick={handleGenerate}
+                        disabled={
+                          isGenerating ||
+                          !editedCharacter.description.trim() ||
+                          !editedCharacter.personality.trim()
+                        }
+                        className="bg-emerald-600 text-white hover:bg-emerald-500"
+                      >
+                        {isGenerating ? (
+                          <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Sparkles className="mr-1 h-4 w-4" />
+                        )}
+                        AI 생성
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  {!isGenerating &&
+                    (!editedCharacter.description.trim() ||
+                      !editedCharacter.personality.trim()) && (
+                      <TooltipContent side="bottom">
+                        <p className="mb-2.5 text-stone-200">
+                          ✨ 설명, 성격을 입력하시면 사용할 수 있어요
+                        </p>
+                        <ul className="space-y-1.5">
+                          <li
+                            className={
+                              editedCharacter.description.trim()
+                                ? "text-emerald-400"
+                                : "text-red-400"
+                            }
+                          >
+                            {editedCharacter.description.trim() ? "✓" : "✗"} 설명
+                          </li>
+                          <li
+                            className={
+                              editedCharacter.personality.trim()
+                                ? "text-emerald-400"
+                                : "text-red-400"
+                            }
+                          >
+                            {editedCharacter.personality.trim() ? "✓" : "✗"} 성격
+                          </li>
+                        </ul>
+                      </TooltipContent>
+                    )}
+                </Tooltip>
+              </TooltipProvider>
               <Button
                 type="button"
                 variant="outline"

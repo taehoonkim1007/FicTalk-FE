@@ -4,6 +4,7 @@ import { ImageIcon, Loader2, Sparkles, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/messages";
 import { getImageUrl } from "@/lib/image";
 import { useGenerateBackgroundImage, useGenerateCoverImage } from "@/queries/useStoriesQueries";
@@ -166,19 +167,43 @@ export const ImageSection = ({
             <Upload className="mr-1 h-4 w-4" />
             파일 업로드
           </Button>
-          <Button
-            type="button"
-            onClick={handleGenerateCover}
-            disabled={!canGenerateImages || isGeneratingCover}
-            className="w-24 bg-emerald-600 text-white hover:bg-emerald-500"
-          >
-            {isGeneratingCover ? (
-              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-            ) : (
-              <Sparkles className="mr-1 h-4 w-4" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="inline-flex">
+                <Button
+                  type="button"
+                  onClick={handleGenerateCover}
+                  disabled={!canGenerateImages || isGeneratingCover}
+                  className="w-24 bg-emerald-600 text-white hover:bg-emerald-500"
+                >
+                  {isGeneratingCover ? (
+                    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="mr-1 h-4 w-4" />
+                  )}
+                  AI 생성
+                </Button>
+              </span>
+            </TooltipTrigger>
+            {!canGenerateImages && !isGeneratingCover && (
+              <TooltipContent side="bottom">
+                <p className="mb-2.5 text-stone-200">
+                  ✨ 제목, 한줄 소개, 줄거리를 입력하시면 사용할 수 있어요
+                </p>
+                <ul className="space-y-1.5">
+                  <li className={title.trim() ? "text-emerald-400" : "text-red-400"}>
+                    {title.trim() ? "✓" : "✗"} 제목
+                  </li>
+                  <li className={description.trim() ? "text-emerald-400" : "text-red-400"}>
+                    {description.trim() ? "✓" : "✗"} 한줄 소개
+                  </li>
+                  <li className={summary.trim() ? "text-emerald-400" : "text-red-400"}>
+                    {summary.trim() ? "✓" : "✗"} 줄거리
+                  </li>
+                </ul>
+              </TooltipContent>
             )}
-            AI 생성
-          </Button>
+          </Tooltip>
         </div>
       </div>
 
@@ -242,19 +267,43 @@ export const ImageSection = ({
               <Upload className="mr-1 h-4 w-4" />
               파일 업로드
             </Button>
-            <Button
-              type="button"
-              onClick={handleGenerateBackground}
-              disabled={!canGenerateImages || isGeneratingBackground}
-              className="w-24 bg-emerald-600 text-white hover:bg-emerald-500"
-            >
-              {isGeneratingBackground ? (
-                <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-              ) : (
-                <Sparkles className="mr-1 h-4 w-4" />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-flex">
+                  <Button
+                    type="button"
+                    onClick={handleGenerateBackground}
+                    disabled={!canGenerateImages || isGeneratingBackground}
+                    className="w-24 bg-emerald-600 text-white hover:bg-emerald-500"
+                  >
+                    {isGeneratingBackground ? (
+                      <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="mr-1 h-4 w-4" />
+                    )}
+                    AI 생성
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              {!canGenerateImages && !isGeneratingBackground && (
+                <TooltipContent side="bottom">
+                  <p className="mb-2.5 text-stone-200">
+                    ✨ 제목, 한줄 소개, 줄거리를 입력하시면 사용할 수 있어요
+                  </p>
+                  <ul className="space-y-1.5">
+                    <li className={title.trim() ? "text-emerald-400" : "text-red-400"}>
+                      {title.trim() ? "✓" : "✗"} 제목
+                    </li>
+                    <li className={description.trim() ? "text-emerald-400" : "text-red-400"}>
+                      {description.trim() ? "✓" : "✗"} 한줄 소개
+                    </li>
+                    <li className={summary.trim() ? "text-emerald-400" : "text-red-400"}>
+                      {summary.trim() ? "✓" : "✗"} 줄거리
+                    </li>
+                  </ul>
+                </TooltipContent>
               )}
-              AI 생성
-            </Button>
+            </Tooltip>
           </div>
         </div>
       </div>

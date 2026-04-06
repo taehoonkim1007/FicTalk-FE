@@ -16,6 +16,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getImageUrl } from "@/lib/image";
 
 // ============================================
@@ -101,6 +102,7 @@ const ViewCard = ({
   name,
   role,
   description,
+  personality,
   profileImage,
   backgroundImage,
   backgroundColor,
@@ -115,6 +117,7 @@ const ViewCard = ({
   isDeleting,
 }: ViewModeProps) => {
   const displayBackgroundImage = useStoryBackground ? storyBackgroundImage : backgroundImage;
+  const hasCharacterDetail = !!description.trim() && !!(personality ?? "").trim();
 
   return (
     <div className="group relative h-42 w-full overflow-hidden rounded-xl bg-stone-900 ring-1 ring-white/10 transition-all hover:ring-2 hover:ring-emerald-500">
@@ -171,17 +174,38 @@ const ViewCard = ({
 
       {/* 4. 액션 버튼 */}
       <div className="absolute top-3 right-3 flex gap-1 opacity-100 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100">
-        <button
-          onClick={() => void onGenerateVoice()}
-          disabled={isGeneratingVoice}
-          className="rounded bg-black/20 p-1.5 text-stone-400 backdrop-blur-sm hover:bg-stone-800 hover:text-violet-400 disabled:opacity-50"
-        >
-          {isGeneratingVoice ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Mic className="h-4 w-4" />
-          )}
-        </button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="inline-flex">
+                <button
+                  onClick={() => void onGenerateVoice()}
+                  disabled={isGeneratingVoice || !hasCharacterDetail}
+                  className="rounded bg-black/20 p-1.5 text-stone-400 backdrop-blur-sm hover:bg-stone-800 hover:text-violet-400 disabled:pointer-events-none disabled:opacity-50"
+                >
+                  {isGeneratingVoice ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Mic className="h-4 w-4" />
+                  )}
+                </button>
+              </span>
+            </TooltipTrigger>
+            {!isGeneratingVoice && !hasCharacterDetail && (
+              <TooltipContent side="bottom">
+                <p className="mb-2.5 text-stone-200">✨ 설명, 성격을 입력하시면 사용할 수 있어요</p>
+                <ul className="space-y-1.5">
+                  <li className={description.trim() ? "text-emerald-400" : "text-red-400"}>
+                    {description.trim() ? "✓" : "✗"} 설명
+                  </li>
+                  <li className={(personality ?? "").trim() ? "text-emerald-400" : "text-red-400"}>
+                    {(personality ?? "").trim() ? "✓" : "✗"} 성격
+                  </li>
+                </ul>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
         <button
           onClick={() => void onGenerateImage()}
           className="rounded bg-black/20 p-1.5 text-stone-400 backdrop-blur-sm hover:bg-stone-800 hover:text-emerald-400"
@@ -238,6 +262,8 @@ const EditForm = (props: EditFormProps) => {
     isGeneratingBackgroundImage,
     isGeneratingVoice,
   } = props;
+
+  const hasCharacterDetail = !!description.trim() && !!(personality ?? "").trim();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const backgroundFileInputRef = useRef<HTMLInputElement>(null);
@@ -465,19 +491,48 @@ const EditForm = (props: EditFormProps) => {
                 파일 업로드
               </button>
 
-              <button
-                type="button"
-                onClick={() => void onGenerateBackgroundImage()}
-                disabled={useStoryBackground || isGeneratingBackgroundImage}
-                className="flex items-center justify-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {isGeneratingBackgroundImage ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                ) : (
-                  <Sparkles className="h-3 w-3" />
-                )}
-                AI 생성
-              </button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex">
+                      <button
+                        type="button"
+                        onClick={() => void onGenerateBackgroundImage()}
+                        disabled={
+                          useStoryBackground || isGeneratingBackgroundImage || !hasCharacterDetail
+                        }
+                        className="flex items-center justify-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-500 disabled:pointer-events-none disabled:opacity-50"
+                      >
+                        {isGeneratingBackgroundImage ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Sparkles className="h-3 w-3" />
+                        )}
+                        AI 생성
+                      </button>
+                    </span>
+                  </TooltipTrigger>
+                  {!useStoryBackground && !isGeneratingBackgroundImage && !hasCharacterDetail && (
+                    <TooltipContent side="bottom">
+                      <p className="mb-2.5 text-stone-200">
+                        ✨ 설명, 성격을 입력하시면 사용할 수 있어요
+                      </p>
+                      <ul className="space-y-1.5">
+                        <li className={description.trim() ? "text-emerald-400" : "text-red-400"}>
+                          {description.trim() ? "✓" : "✗"} 설명
+                        </li>
+                        <li
+                          className={
+                            (personality ?? "").trim() ? "text-emerald-400" : "text-red-400"
+                          }
+                        >
+                          {(personality ?? "").trim() ? "✓" : "✗"} 성격
+                        </li>
+                      </ul>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
         </div>
@@ -502,19 +557,44 @@ const EditForm = (props: EditFormProps) => {
               ? "AI 음성이 설정되어 있습니다. 다시 생성하려면 버튼을 클릭하세요."
               : "캐릭터 설명과 성격을 기반으로 AI 음성을 생성합니다."}
           </p>
-          <button
-            type="button"
-            onClick={() => void onGenerateVoice()}
-            disabled={isGeneratingVoice}
-            className="flex shrink-0 items-center justify-center gap-1 rounded-md bg-violet-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isGeneratingVoice ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : (
-              <Sparkles className="h-3 w-3" />
-            )}
-            AI 음성 생성
-          </button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-flex shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => void onGenerateVoice()}
+                    disabled={isGeneratingVoice || !hasCharacterDetail}
+                    className="flex items-center justify-center gap-1 rounded-md bg-violet-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-violet-500 disabled:pointer-events-none disabled:opacity-50"
+                  >
+                    {isGeneratingVoice ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3 w-3" />
+                    )}
+                    AI 음성 생성
+                  </button>
+                </span>
+              </TooltipTrigger>
+              {!isGeneratingVoice && !hasCharacterDetail && (
+                <TooltipContent side="bottom">
+                  <p className="mb-2.5 text-stone-200">
+                    ✨ 설명, 성격을 입력하시면 사용할 수 있어요
+                  </p>
+                  <ul className="space-y-1.5">
+                    <li className={description.trim() ? "text-emerald-400" : "text-red-400"}>
+                      {description.trim() ? "✓" : "✗"} 설명
+                    </li>
+                    <li
+                      className={(personality ?? "").trim() ? "text-emerald-400" : "text-red-400"}
+                    >
+                      {(personality ?? "").trim() ? "✓" : "✗"} 성격
+                    </li>
+                  </ul>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
     </div>

@@ -424,6 +424,10 @@ export const useStoryCharactersLogic = ({
       toast.error(ERROR_MESSAGES.DESCRIPTION_REQUIRED);
       return;
     }
+    if (!char.personality?.trim()) {
+      toast.error(ERROR_MESSAGES.CHARACTER_PERSONALITY_REQUIRED);
+      return;
+    }
 
     setGeneratingVoiceCharacterId(char.id);
 
