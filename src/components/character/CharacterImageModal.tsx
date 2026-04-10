@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/messages";
 import { useGenerateProfileImage } from "@/queries/useStoriesQueries";
 
@@ -138,8 +139,8 @@ export const CharacterImageModal = ({
           {/* 캐릭터 정보 입력 필드 */}
           <div className="space-y-3">
             <div>
-              <Label htmlFor="char-description" className="mb-1 font-medium text-stone-300">
-                설명
+              <Label htmlFor="char-description" className="mb-1.5 block text-xs text-stone-400">
+                캐릭터 설명
               </Label>
               <Textarea
                 id="char-description"
@@ -147,15 +148,15 @@ export const CharacterImageModal = ({
                 onChange={(e) =>
                   setEditedCharacter({ ...editedCharacter, description: e.target.value })
                 }
-                placeholder="캐릭터에 대한 설명"
+                placeholder="캐릭터에 대한 설명을 입력하세요"
                 maxLength={1000}
                 rows={3}
                 className="min-h-0 bg-stone-800 px-3 py-2 text-sm ring-stone-700"
               />
             </div>
             <div>
-              <Label htmlFor="char-personality" className="mb-1 font-medium text-stone-300">
-                성격
+              <Label htmlFor="char-personality" className="mb-1.5 block text-xs text-stone-400">
+                캐릭터 성격
               </Label>
               <Textarea
                 id="char-personality"
@@ -163,7 +164,7 @@ export const CharacterImageModal = ({
                 onChange={(e) =>
                   setEditedCharacter({ ...editedCharacter, personality: e.target.value })
                 }
-                placeholder="캐릭터의 성격 특성"
+                placeholder="캐릭터의 성격 특성을 입력하세요"
                 maxLength={500}
                 rows={3}
                 className="min-h-0 bg-stone-800 px-3 py-2 text-sm ring-stone-700"
@@ -196,19 +197,60 @@ export const CharacterImageModal = ({
             </>
           ) : (
             <>
-              <Button
-                type="button"
-                onClick={handleGenerate}
-                disabled={isGenerating}
-                className="bg-emerald-600 text-white hover:bg-emerald-500"
-              >
-                {isGenerating ? (
-                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="mr-1 h-4 w-4" />
-                )}
-                AI 생성
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex">
+                      <Button
+                        type="button"
+                        onClick={handleGenerate}
+                        disabled={
+                          isGenerating ||
+                          !editedCharacter.description.trim() ||
+                          !editedCharacter.personality.trim()
+                        }
+                        className="bg-emerald-600 text-white hover:bg-emerald-500"
+                      >
+                        {isGenerating ? (
+                          <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Sparkles className="mr-1 h-4 w-4" />
+                        )}
+                        AI 생성
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  {!isGenerating &&
+                    (!editedCharacter.description.trim() ||
+                      !editedCharacter.personality.trim()) && (
+                      <TooltipContent side="bottom">
+                        <p className="mb-2.5 text-stone-200">
+                          ✨ 설명, 성격을 입력하시면 사용할 수 있어요
+                        </p>
+                        <ul className="space-y-1.5">
+                          <li
+                            className={
+                              editedCharacter.description.trim()
+                                ? "text-emerald-400"
+                                : "text-red-400"
+                            }
+                          >
+                            {editedCharacter.description.trim() ? "✓" : "✗"} 설명
+                          </li>
+                          <li
+                            className={
+                              editedCharacter.personality.trim()
+                                ? "text-emerald-400"
+                                : "text-red-400"
+                            }
+                          >
+                            {editedCharacter.personality.trim() ? "✓" : "✗"} 성격
+                          </li>
+                        </ul>
+                      </TooltipContent>
+                    )}
+                </Tooltip>
+              </TooltipProvider>
               <Button
                 type="button"
                 variant="outline"

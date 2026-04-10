@@ -1,5 +1,6 @@
 import type {
   CurrentUser,
+  DeleteAccountResponse,
   ExchangeCodeResponse,
   GuestTokenRequest,
   GuestTokenResponse,
@@ -39,5 +40,13 @@ export const createGuestToken = async (guestId?: string): Promise<GuestTokenResp
  */
 export const logout = async (): Promise<LogoutResponse> => {
   const response = await apiClient.post<LogoutResponse>("/auth/logout");
+  return response.data;
+};
+
+/**
+ * 회원탈퇴
+ */
+export const deleteAccount = async (): Promise<DeleteAccountResponse> => {
+  const response = await apiClient.delete<DeleteAccountResponse>("/auth/account");
   return response.data;
 };

@@ -10,6 +10,14 @@ import type {
 // Entity
 // ==========================================
 
+/** 스토리 게시 상태 */
+export type StoryStatus = "DRAFT" | "PUBLISHED";
+
+export const STORY_STATUS = {
+  DRAFT: "DRAFT",
+  PUBLISHED: "PUBLISHED",
+} as const satisfies Record<StoryStatus, StoryStatus>;
+
 /** 스토리 작성자 */
 export interface StoryCreator {
   id: string;
@@ -27,6 +35,8 @@ export interface Story {
   coverImage: string | null;
   backgroundImage: string | null;
   isOfficial: boolean;
+  status: StoryStatus;
+  publishedAt: string | null;
   createdAt: string;
   category: Pick<Category, "id" | "name" | "slug">;
 }

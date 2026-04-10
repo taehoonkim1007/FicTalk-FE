@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-import { createGuestToken, exchangeCode, getCurrentUser, logout } from "@/api/auth";
+import { createGuestToken, deleteAccount, exchangeCode, getCurrentUser, logout } from "@/api/auth";
 
 // ==========================================
 // Query Keys
@@ -56,5 +56,14 @@ export const useGuestToken = () => {
 export const useLogout = () => {
   return useMutation({
     mutationFn: logout,
+  });
+};
+
+/**
+ * 회원탈퇴
+ */
+export const useDeleteAccount = () => {
+  return useMutation({
+    mutationFn: deleteAccount,
   });
 };

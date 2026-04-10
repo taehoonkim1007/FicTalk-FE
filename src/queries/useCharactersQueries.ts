@@ -68,6 +68,8 @@ export const useCreateCharacter = (storyId: string) => {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: storiesKeys.detail(storyId) });
       void queryClient.invalidateQueries({ queryKey: storiesKeys.characters(storyId) });
+      void queryClient.invalidateQueries({ queryKey: storiesKeys.myStoryDetail(storyId) });
+      void queryClient.invalidateQueries({ queryKey: storiesKeys.myStoryCharacters(storyId) });
     },
   });
 };
@@ -84,6 +86,8 @@ export const useUpdateCharacter = (storyId: string) => {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: storiesKeys.detail(storyId) });
       void queryClient.invalidateQueries({ queryKey: storiesKeys.characters(storyId) });
+      void queryClient.invalidateQueries({ queryKey: storiesKeys.myStoryDetail(storyId) });
+      void queryClient.invalidateQueries({ queryKey: storiesKeys.myStoryCharacters(storyId) });
     },
   });
 };
@@ -99,6 +103,8 @@ export const useDeleteCharacter = (storyId: string) => {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: storiesKeys.detail(storyId) });
       void queryClient.invalidateQueries({ queryKey: storiesKeys.characters(storyId) });
+      void queryClient.invalidateQueries({ queryKey: storiesKeys.myStoryDetail(storyId) });
+      void queryClient.invalidateQueries({ queryKey: storiesKeys.myStoryCharacters(storyId) });
     },
   });
 };

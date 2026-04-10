@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 
 import { useCurrentUser } from "@/queries/useAuthQueries";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -9,8 +9,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ guestAllowed = true }: ProtectedRouteProps) => {
-  const { isAuthenticated, accessToken, user, _hasHydrated } = useAuthStore();
-  const location = useLocation();
+  const { accessToken, user, _hasHydrated } = useAuthStore();
   const { isLoading, data: fetchedUser } = useCurrentUser(!!accessToken);
 
   // Zustand이 localStorage에서 복원 중이면 대기
@@ -33,14 +32,14 @@ export const ProtectedRoute = ({ guestAllowed = true }: ProtectedRouteProps) => 
 
   const currentUser = user || fetchedUser;
 
-  // 인증되지 않았으면 로그인 페이지로
-  if (!isAuthenticated && !currentUser) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+  // 인증되지 않았으면 홈으로
+  if (!accessToken && !currentUser) {
+    return <Navigate to="/" replace />;
   }
 
-  // 게스트 허용하지 않는 라우트에서 게스트면 로그인 페이지로
+  // 게스트 허용하지 않는 라우트에서 게스트면 홈으로
   if (!guestAllowed && currentUser && isGuestUser(currentUser)) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/" replace />;
   }
 
   return <Outlet />;

@@ -2,11 +2,16 @@
 // Entity
 // ==========================================
 
+/** 캐릭터 역할 (BE Prisma enum과 일치) */
+export type CharacterRole = "주인공" | "조연";
+
+export const CHARACTER_ROLES = ["주인공", "조연"] as const satisfies readonly CharacterRole[];
+
 /** 캐릭터 (목록용) */
 export interface Character {
   id: string;
   name: string;
-  role: string;
+  role: CharacterRole;
   description: string;
   imageColor: string;
   profileImage: string | null;
@@ -27,7 +32,7 @@ export interface CharacterDetail extends Character {
 export interface CharacterWithStory {
   id: string;
   name: string;
-  role: string;
+  role: CharacterRole;
   description: string;
   imageColor: string;
   profileImage: string | null;
@@ -62,7 +67,7 @@ export interface CharacterDetailWithStory extends CharacterDetail {
 /** AI 생성 캐릭터 */
 export interface GeneratedCharacter {
   name: string;
-  role: string;
+  role: CharacterRole;
   description: string;
   personality: string;
   firstMessage: string;
@@ -75,7 +80,7 @@ export interface GeneratedCharacter {
 export interface GetCharactersParams {
   category?: string;
   search?: string;
-  role?: string;
+  role?: CharacterRole;
   page?: number;
   limit?: number;
 }
@@ -83,7 +88,8 @@ export interface GetCharactersParams {
 export interface CreateCharacterRequest {
   id?: string;
   name: string;
-  role: string;
+  /** 폼 입력 중 미선택 상태("")를 허용. 제출 시점에 CharacterRole로 검증됨 */
+  role: CharacterRole | "";
   description: string;
   personality?: string;
   firstMessage?: string;
@@ -97,7 +103,7 @@ export interface CreateCharacterRequest {
 
 export interface UpdateCharacterRequest {
   name?: string;
-  role?: string;
+  role?: CharacterRole;
   description?: string;
   personality?: string;
   firstMessage?: string;

@@ -5,11 +5,14 @@
 export const SUCCESS_MESSAGES = {
   // Auth
   LOGOUT: "로그아웃 되었습니다.",
+  ACCOUNT_DELETED: "회원탈퇴가 완료되었습니다.",
 
   // Story
-  STORY_CREATED: "스토리가 작성되었습니다.",
+  STORY_CREATED:
+    "스토리가 작성되었습니다. 다른 사용자에게 보여주려면 [공개로 전환] 버튼을 눌러주세요.",
   STORY_UPDATED: "스토리가 수정되었습니다.",
   STORY_DELETED: "스토리가 삭제되었습니다.",
+  STORY_PUBLISHED: "스토리가 공개되었습니다.",
   SUMMARY_GENERATED: "줄거리가 생성되었습니다.",
 
   // Character
@@ -50,11 +53,14 @@ export const ERROR_MESSAGES = {
 
   // Auth
   GUEST_SESSION_FAILED: "게스트 세션 생성에 실패했습니다.",
+  ACCOUNT_DELETE_FAILED: "회원탈퇴에 실패했습니다.",
 
   // Story
   STORY_CREATE_FAILED: "스토리 작성에 실패했습니다.",
   STORY_UPDATE_FAILED: "스토리 수정에 실패했습니다.",
   STORY_DELETE_FAILED: "스토리 삭제에 실패했습니다.",
+  STORY_PUBLISH_FAILED: "스토리를 공개로 전환하지 못했습니다.",
+  STORY_PUBLISH_NO_CHARACTER: "캐릭터를 1명 이상 추가해주세요.",
   SUMMARY_GENERATE_FAILED: "줄거리 생성에 실패했습니다.",
 
   // Character

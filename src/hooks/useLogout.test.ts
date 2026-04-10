@@ -20,6 +20,10 @@ vi.mock("@/queries/useAuthQueries", () => ({
     mutate: mockMutate,
     isPending: false,
   }),
+  authKeys: {
+    all: ["auth"],
+    currentUser: () => ["auth", "currentUser"],
+  },
 }));
 
 // Mock useChatQueries
@@ -88,6 +92,7 @@ describe("useLogout", () => {
 
       await waitFor(() => {
         expect(mockRemoveQueries).toHaveBeenCalledWith({ queryKey: ["chat"] });
+        expect(mockRemoveQueries).toHaveBeenCalledWith({ queryKey: ["auth", "currentUser"] });
         expect(mockClearAuth).toHaveBeenCalled();
         expect(toast.success).toHaveBeenCalledWith(SUCCESS_MESSAGES.LOGOUT);
         expect(mockNavigate).toHaveBeenCalledWith("/");
@@ -109,6 +114,7 @@ describe("useLogout", () => {
 
       await waitFor(() => {
         expect(mockRemoveQueries).toHaveBeenCalledWith({ queryKey: ["chat"] });
+        expect(mockRemoveQueries).toHaveBeenCalledWith({ queryKey: ["auth", "currentUser"] });
         expect(mockClearAuth).toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalledWith("/");
       });

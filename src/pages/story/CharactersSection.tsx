@@ -19,8 +19,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type {
   CharacterDetail,
+  CharacterRole,
   CreateCharacterRequest,
   UpdateCharacterRequest,
 } from "@/types/character";
@@ -41,12 +43,14 @@ interface CharactersSectionProps {
   isGeneratingCharacters: boolean;
   isGeneratingBackgroundImage: boolean;
   generatingBackgroundCharacterId: string | null;
-  canGenerateCharacters: boolean;
+  storyTitle: string;
+  storyDescription: string;
+  storySummary: string;
   storyBackgroundImage: string | null;
   imageModalCharacter: {
     id: string;
     name: string;
-    role: string;
+    role: CharacterRole | "";
     description: string;
     personality: string;
   } | null;
@@ -79,14 +83,14 @@ interface CharactersSectionProps {
   handleGenerateCharacterBackgroundImage: (char: {
     id: string;
     name: string;
-    role: string;
+    role: CharacterRole | "";
     description: string;
     personality?: string | null;
   }) => void | Promise<void>;
   handleOpenImageModal: (char: {
     id: string;
     name: string;
-    role: string;
+    role: CharacterRole | "";
     description: string;
     personality?: string | null;
   }) => void;
@@ -101,6 +105,8 @@ interface CharactersSectionProps {
   }) => void | Promise<void>;
   handleCloseVoicePreviewModal: () => void;
   handleConfirmVoice: () => void | Promise<void>;
+  /** 테스트 채팅 핸들러 (편집 모드에서만 제공) */
+  handleTestChat?: (characterId: string) => void;
 }
 
 export const CharactersSection = ({
@@ -119,7 +125,9 @@ export const CharactersSection = ({
   isGeneratingCharacters,
   isGeneratingBackgroundImage,
   generatingBackgroundCharacterId,
-  canGenerateCharacters,
+  storyTitle,
+  storyDescription,
+  storySummary,
   storyBackgroundImage,
   imageModalCharacter,
   characterToDelete,
@@ -145,6 +153,7 @@ export const CharactersSection = ({
   handleGenerateVoice,
   handleCloseVoicePreviewModal,
   handleConfirmVoice,
+  handleTestChat,
 }: CharactersSectionProps) => {
   // ==========================================
   // 로컬 상태
@@ -156,6 +165,11 @@ export const CharactersSection = ({
   // 계산된 값 (Computed)
   // ==========================================
   const displayCharacters = isEditMode ? existingCharacters : characters;
+  const canGenerateCharacters = !!(
+    storyTitle.trim() &&
+    storyDescription.trim() &&
+    storySummary.trim()
+  );
 
   // ==========================================
   // 핸들러
@@ -179,21 +193,45 @@ export const CharactersSection = ({
         <div className="flex items-center gap-2">
           {/* AI 생성 버튼 (생성 모드에서만) */}
           {!isEditMode && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => void handleGenerateCharacters()}
-              disabled={isGeneratingCharacters || !canGenerateCharacters}
-              className="border-emerald-700 bg-transparent text-emerald-400 hover:bg-emerald-900/50 hover:text-emerald-300"
-            >
-              {isGeneratingCharacters ? (
-                <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-              ) : (
-                <Sparkles className="mr-1 h-4 w-4" />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-flex">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void handleGenerateCharacters()}
+                    disabled={isGeneratingCharacters || !canGenerateCharacters}
+                    className="border-emerald-700 bg-transparent text-emerald-400 hover:bg-emerald-900/50 hover:text-emerald-300"
+                  >
+                    {isGeneratingCharacters ? (
+                      <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="mr-1 h-4 w-4" />
+                    )}
+                    AI 생성
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              {!canGenerateCharacters && !isGeneratingCharacters && (
+                <TooltipContent side="bottom">
+                  <p className="mb-2.5 text-stone-200">
+                    ✨ 제목, 한줄 소개, 줄거리를 입력하시면 사용할 수 있어요
+                  </p>
+                  <ul className="space-y-1.5">
+                    <li className={storyTitle.trim() ? "text-emerald-400" : "text-red-400"}>
+                      {storyTitle.trim() ? "✓" : "✗"} 제목
+                    </li>
+                    <li className={storyDescription.trim() ? "text-emerald-400" : "text-red-400"}>
+                      {storyDescription.trim() ? "✓" : "✗"} 한줄 소개
+                    </li>
+                    <li className={storySummary.trim() ? "text-emerald-400" : "text-red-400"}>
+                      {storySummary.trim() ? "✓" : "✗"} 줄거리
+                    </li>
+                  </ul>
+                </TooltipContent>
               )}
-              AI 생성
-            </Button>
+            </Tooltip>
           )}
           <Button
             type="button"
@@ -391,17 +429,7 @@ export const CharactersSection = ({
                     useStoryBackground={useStoryBackgroundMap[char.id] || false}
                     onEdit={() => handleStartEditCharacter(char)}
                     onDelete={() => handleDeleteCharacter(char.id)}
-                    onGenerateImage={() => handleOpenImageModal(char)}
-                    onGenerateVoice={() =>
-                      handleGenerateVoice({
-                        id: char.id,
-                        name: char.name,
-                        description: char.description,
-                        personality: char.personality,
-                        firstMessage: char.firstMessage,
-                      })
-                    }
-                    isGeneratingVoice={generatingVoiceCharacterId === char.id}
+                    onTestChat={handleTestChat ? () => handleTestChat(char.id) : undefined}
                     isDeleting={isDeletingCharacter}
                   />
                 ),

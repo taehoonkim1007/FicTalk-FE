@@ -1,27 +1,40 @@
 import { type FormEvent, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
-import { BookOpen, Loader2, LogIn, LogOut, MessageSquare, Search, X } from "lucide-react";
+import { BookOpen, HelpCircle, LogIn, LogOut, MessageSquare, Search, User, X } from "lucide-react";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Logo } from "@/components/ui/logo";
 import { useLogout } from "@/hooks/useLogout";
+import { useCurrentUser } from "@/queries/useAuthQueries";
 import { useCategories } from "@/queries/useCategoriesQueries";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { isGuestUser } from "@/types/auth";
+import { isAuthenticatedUser, isGuestUser } from "@/types/auth";
 
 export const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, user } = useAuthStore();
+  const { accessToken, user } = useAuthStore();
+  const { data: fetchedUser } = useCurrentUser(!!accessToken);
   const { logout, isLoggingOut } = useLogout();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: categories = [] } = useCategories();
 
+  // store 우선, 쿼리 캐시 fallback
+  const currentUser = user ?? fetchedUser ?? null;
+
   // 게스트 여부
-  const isGuest = user && isGuestUser(user);
+  const isGuest = currentUser && isGuestUser(currentUser);
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -86,11 +99,12 @@ export const Header = () => {
 
           <div className="flex items-center gap-3">
             {/* 일반 유저만: 내 스토리 */}
-            {isAuthenticated && !isGuest && (
+            {accessToken && !isGuest && (
               <Button
                 size="sm"
                 variant="ghost"
                 className="text-stone-400 hover:text-blue-400"
+                data-tour="my-stories"
                 onClick={() => void navigate("/my-stories")}
               >
                 <BookOpen className="h-4 w-4 md:mr-1.5" />
@@ -99,11 +113,12 @@ export const Header = () => {
             )}
 
             {/* 모든 인증 유저: 내 대화 */}
-            {isAuthenticated && (
+            {accessToken && (
               <Button
                 size="sm"
                 variant="ghost"
                 className="mr-2 text-stone-400 hover:text-emerald-400"
+                data-tour="my-chat"
                 onClick={() => void navigate("/chat")}
               >
                 <MessageSquare className="h-4 w-4 md:mr-1.5" />
@@ -111,7 +126,11 @@ export const Header = () => {
               </Button>
             )}
 
-            <form onSubmit={handleSearch} className="relative hidden md:flex">
+            <form
+              onSubmit={handleSearch}
+              className="relative hidden md:flex"
+              data-tour="search-input"
+            >
               <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-stone-500" />
               <input
                 type="text"
@@ -130,41 +149,107 @@ export const Header = () => {
               <Search className="h-5 w-5" />
             </Button>
 
-            {/* 게스트: 로그인 버튼 */}
+            {/* 게스트: 가이드 투어 + 로그인 버튼 */}
             {isGuest && (
-              <Button size="sm" variant="white" onClick={() => void navigate("/login")}>
-                <LogIn className="h-4 w-4 md:mr-2" />
-                <span className="hidden md:inline">로그인</span>
-              </Button>
+              <>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="text-stone-400 hover:text-emerald-400"
+                  data-tour="guide-restart"
+                  onClick={() => {
+                    void navigate("/");
+                    setTimeout(() => window.dispatchEvent(new Event("fictalk:restart-tour")));
+                  }}
+                >
+                  <HelpCircle className="h-5 w-5" />
+                </Button>
+                <Button size="sm" variant="white" onClick={() => void navigate("/login")}>
+                  <LogIn className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">로그인</span>
+                </Button>
+              </>
             )}
 
-            {/* 일반 유저: 로그아웃 버튼 */}
-            {isAuthenticated && !isGuest && (
-              <Button size="sm" variant="white" onClick={logout} disabled={isLoggingOut}>
-                {isLoggingOut ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    <LogOut className="h-4 w-4 rotate-180 md:mr-2" />
-                    <span className="hidden md:inline">로그아웃</span>
-                  </>
-                )}
-              </Button>
+            {/* 일반 유저: 가이드 투어 + 프로필 드롭다운 */}
+            {accessToken && currentUser && isAuthenticatedUser(currentUser) && (
+              <>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="text-stone-400 hover:text-emerald-400"
+                  data-tour="guide-restart"
+                  onClick={() => {
+                    void navigate("/");
+                    setTimeout(() => window.dispatchEvent(new Event("fictalk:restart-tour")));
+                  }}
+                >
+                  <HelpCircle className="h-5 w-5" />
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon" variant="ghost" className="rounded-full">
+                      <Avatar size="sm">
+                        <AvatarImage
+                          src={currentUser.profileImage ?? undefined}
+                          alt={currentUser.name}
+                        />
+                        <AvatarFallback>
+                          <User className="h-3 w-3" />
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-40">
+                    <DropdownMenuItem onClick={() => void navigate("/profile")}>
+                      <User className="mr-2 h-4 w-4" />
+                      회원정보
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={logout} disabled={isLoggingOut}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      로그아웃
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
             )}
 
-            {/* 비인증 (로딩 중): 로그인 버튼 */}
-            {!isAuthenticated && (
-              <Button size="sm" variant="white" onClick={() => void navigate("/login")}>
-                <LogIn className="h-4 w-4 md:mr-2" />
-                <span className="hidden md:inline">로그인</span>
-              </Button>
+            {/* 비인증: 가이드 투어 + 로그인 버튼 */}
+            {!accessToken && (
+              <>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="text-stone-400 hover:text-emerald-400"
+                  data-tour="guide-restart"
+                  onClick={() => {
+                    void navigate("/");
+                    setTimeout(() => window.dispatchEvent(new Event("fictalk:restart-tour")));
+                  }}
+                >
+                  <HelpCircle className="h-5 w-5" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="white"
+                  data-tour="login-button"
+                  onClick={() => void navigate("/login")}
+                >
+                  <LogIn className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">로그인</span>
+                </Button>
+              </>
             )}
           </div>
         </div>
       </div>
 
       {/* Category Filter Bar */}
-      <div className="no-scrollbar w-full overflow-x-auto border-t border-white/5">
+      <div
+        className="no-scrollbar w-full overflow-x-auto border-t border-white/5"
+        data-tour="category-filter"
+      >
         <div className="mx-auto flex h-12 max-w-7xl items-center gap-2 px-4">
           {/* 홈 버튼 */}
           <button

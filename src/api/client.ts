@@ -122,11 +122,18 @@ apiClient.interceptors.response.use(
 
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return apiClient(originalRequest);
-      } catch {
-        // refresh 실패 시 대기 중인 요청들에게 원래 401 에러 전달
+      } catch (refreshError) {
+        // 503(인프라 오류) 시 세션 유지 — 일시적 장애이므로 로그아웃하지 않음
+        if (axios.isAxiosError(refreshError) && refreshError.response?.status === 503) {
+          onRefreshFailed(error);
+          toast.error(ERROR_MESSAGES.SERVER_ERROR);
+          throw error;
+        }
+
+        // 401 등 인증 오류 시 세션 삭제
         onRefreshFailed(error);
         useAuthStore.getState().actions.clearAuth();
-        window.location.href = "/login";
+        window.location.href = "/";
         throw error;
       } finally {
         isRefreshing = false;
@@ -152,6 +159,7 @@ apiClient.interceptors.response.use(
           toast.error(ERROR_MESSAGES.NOT_FOUND);
           break;
         case 500:
+        case 503:
           toast.error(ERROR_MESSAGES.SERVER_ERROR);
           break;
       }

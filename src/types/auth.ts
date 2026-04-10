@@ -53,6 +53,10 @@ export interface LogoutResponse {
   message: string;
 }
 
+export interface DeleteAccountResponse {
+  message: string;
+}
+
 export interface RefreshTokenResponse {
   accessToken: string;
 }

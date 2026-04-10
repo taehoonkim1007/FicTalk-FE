@@ -9,7 +9,6 @@ describe("useAuthStore", () => {
     useAuthStore.setState({
       user: null,
       accessToken: null,
-      isAuthenticated: false,
       guestId: undefined,
       _hasHydrated: false,
     });
@@ -19,14 +18,13 @@ describe("useAuthStore", () => {
     useAuthStore.setState({
       user: null,
       accessToken: null,
-      isAuthenticated: false,
       guestId: undefined,
       _hasHydrated: false,
     });
   });
 
   describe("setUser", () => {
-    it("사용자를 설정하고 isAuthenticated를 true로 변경한다", () => {
+    it("사용자를 설정한다", () => {
       const user: AuthenticatedUser = {
         id: "user-123",
         email: "test@example.com",
@@ -39,7 +37,6 @@ describe("useAuthStore", () => {
 
       const state = useAuthStore.getState();
       expect(state.user).toEqual(user);
-      expect(state.isAuthenticated).toBe(true);
     });
 
     it("게스트 사용자도 설정할 수 있다", () => {
@@ -54,17 +51,15 @@ describe("useAuthStore", () => {
 
       const state = useAuthStore.getState();
       expect(state.user).toEqual(guest);
-      expect(state.isAuthenticated).toBe(true);
     });
   });
 
   describe("setAccessToken", () => {
-    it("토큰을 설정하고 isAuthenticated를 true로 변경한다", () => {
+    it("토큰을 설정한다", () => {
       useAuthStore.getState().actions.setAccessToken("test-token");
 
       const state = useAuthStore.getState();
       expect(state.accessToken).toBe("test-token");
-      expect(state.isAuthenticated).toBe(true);
     });
   });
 
@@ -81,7 +76,6 @@ describe("useAuthStore", () => {
       useAuthStore.setState({
         user: { id: "old", role: "guest", usageCount: 0, maxUsage: 10 },
         guestId: "old-guest",
-        isAuthenticated: true,
       });
 
       useAuthStore.getState().actions.loginWithToken("new-token");
@@ -90,12 +84,11 @@ describe("useAuthStore", () => {
       expect(state.accessToken).toBe("new-token");
       expect(state.user).toBeNull();
       expect(state.guestId).toBeUndefined();
-      expect(state.isAuthenticated).toBe(true);
     });
   });
 
   describe("logout", () => {
-    it("user와 accessToken을 초기화하고 isAuthenticated를 false로 변경한다", () => {
+    it("user와 accessToken을 초기화한다", () => {
       useAuthStore.setState({
         user: {
           id: "user-123",
@@ -105,7 +98,6 @@ describe("useAuthStore", () => {
           role: "user",
         },
         accessToken: "test-token",
-        isAuthenticated: true,
         guestId: "guest-123",
       });
 
@@ -114,7 +106,6 @@ describe("useAuthStore", () => {
       const state = useAuthStore.getState();
       expect(state.user).toBeNull();
       expect(state.accessToken).toBeNull();
-      expect(state.isAuthenticated).toBe(false);
       expect(state.guestId).toBe("guest-123");
     });
   });
@@ -130,7 +121,6 @@ describe("useAuthStore", () => {
           role: "user",
         },
         accessToken: "test-token",
-        isAuthenticated: true,
         guestId: "guest-123",
       });
 
@@ -139,7 +129,6 @@ describe("useAuthStore", () => {
       const state = useAuthStore.getState();
       expect(state.user).toBeNull();
       expect(state.accessToken).toBeNull();
-      expect(state.isAuthenticated).toBe(false);
       expect(state.guestId).toBeUndefined();
     });
   });

@@ -1,5 +1,7 @@
 import { Outlet } from "react-router-dom";
 
+import { GuideTour } from "@/components/guide/GuideTour";
+
 import { Footer } from "./Footer";
 import { Header } from "./Header";
 
@@ -11,6 +13,7 @@ export const MainLayout = () => {
         <Outlet />
       </main>
       <Footer />
+      <GuideTour />
     </div>
   );
 };

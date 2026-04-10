@@ -4,6 +4,7 @@ import {
   Check,
   ImageIcon,
   Loader2,
+  MessageSquare,
   Mic,
   Pencil,
   Sparkles,
@@ -16,7 +17,10 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getImageUrl } from "@/lib/image";
+import { cn } from "@/lib/utils";
+import { CHARACTER_ROLES, type CharacterRole } from "@/types/character";
 
 // ============================================
 // 타입 정의: Discriminated Union
@@ -25,7 +29,8 @@ import { getImageUrl } from "@/lib/image";
 /** 공통 데이터 props */
 interface CharacterDataProps {
   name: string;
-  role: string;
+  /** 미선택 상태("")는 폼 입력 도중에만 허용 */
+  role: CharacterRole | "";
   description: string;
   personality: string | null;
   firstMessage: string | null;
@@ -40,7 +45,7 @@ interface CharacterDataProps {
 /** 편집 모드 공통 props */
 interface EditModeCommonProps {
   onNameChange: (value: string) => void;
-  onRoleChange: (value: string) => void;
+  onRoleChange: (value: CharacterRole) => void;
   onDescriptionChange: (value: string) => void;
   onPersonalityChange: (value: string) => void;
   onFirstMessageChange: (value: string) => void;
@@ -73,9 +78,8 @@ interface ViewModeProps extends CharacterDataProps {
   mode: "view";
   onEdit: () => void;
   onDelete: () => void | Promise<void>;
-  onGenerateImage: () => void | Promise<void>;
-  onGenerateVoice: () => void | Promise<void>;
-  isGeneratingVoice?: boolean;
+  /** 테스트 채팅 핸들러 (제공 시 버튼 노출) */
+  onTestChat?: () => void;
   isDeleting?: boolean;
 }
 
@@ -109,9 +113,7 @@ const ViewCard = ({
   useStoryBackground,
   onEdit,
   onDelete,
-  onGenerateImage,
-  onGenerateVoice,
-  isGeneratingVoice,
+  onTestChat,
   isDeleting,
 }: ViewModeProps) => {
   const displayBackgroundImage = useStoryBackground ? storyBackgroundImage : backgroundImage;
@@ -171,23 +173,15 @@ const ViewCard = ({
 
       {/* 4. 액션 버튼 */}
       <div className="absolute top-3 right-3 flex gap-1 opacity-100 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100">
-        <button
-          onClick={() => void onGenerateVoice()}
-          disabled={isGeneratingVoice}
-          className="rounded bg-black/20 p-1.5 text-stone-400 backdrop-blur-sm hover:bg-stone-800 hover:text-violet-400 disabled:opacity-50"
-        >
-          {isGeneratingVoice ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Mic className="h-4 w-4" />
-          )}
-        </button>
-        <button
-          onClick={() => void onGenerateImage()}
-          className="rounded bg-black/20 p-1.5 text-stone-400 backdrop-blur-sm hover:bg-stone-800 hover:text-emerald-400"
-        >
-          <Sparkles className="h-4 w-4" />
-        </button>
+        {onTestChat && (
+          <button
+            onClick={onTestChat}
+            className="rounded bg-black/20 p-1.5 text-stone-400 backdrop-blur-sm hover:bg-stone-800 hover:text-emerald-400"
+            title="테스트 채팅"
+          >
+            <MessageSquare className="h-4 w-4" />
+          </button>
+        )}
         <button
           onClick={onEdit}
           className="rounded bg-black/20 p-1.5 text-stone-400 backdrop-blur-sm hover:bg-stone-800 hover:text-yellow-400"
@@ -238,6 +232,8 @@ const EditForm = (props: EditFormProps) => {
     isGeneratingBackgroundImage,
     isGeneratingVoice,
   } = props;
+
+  const hasCharacterDetail = !!description.trim() && !!(personality ?? "").trim();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const backgroundFileInputRef = useRef<HTMLInputElement>(null);
@@ -328,43 +324,66 @@ const EditForm = (props: EditFormProps) => {
 
         {/* 입력 필드 */}
         <div className="min-w-0 flex-1 space-y-3">
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <span className="mb-1.5 block text-xs text-stone-400">이름</span>
             <Input
               value={name}
               onChange={(e) => onNameChange(e.target.value)}
-              placeholder="이름"
+              placeholder="캐릭터 이름을 입력하세요"
               maxLength={100}
               className="h-auto bg-stone-800 px-3 py-2 text-sm ring-stone-700"
             />
+          </div>
+          <div>
+            <span className="mb-1.5 block text-xs text-stone-400">역할 선택</span>
+            <div className="inline-flex rounded-md bg-stone-800 p-0.5 ring-1 ring-stone-700">
+              {CHARACTER_ROLES.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => onRoleChange(option)}
+                  className={cn(
+                    "rounded px-4 py-1.5 text-sm font-medium transition-colors",
+                    role === option
+                      ? "bg-emerald-600 text-white"
+                      : "text-stone-400 hover:text-stone-200",
+                  )}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <span className="mb-1.5 block text-xs text-stone-400">캐릭터 설명</span>
             <Input
-              value={role}
-              onChange={(e) => onRoleChange(e.target.value)}
-              placeholder="역할 (예: 주인공)"
-              maxLength={50}
+              value={description}
+              onChange={(e) => onDescriptionChange(e.target.value)}
+              placeholder="캐릭터에 대한 설명을 입력하세요"
+              maxLength={500}
               className="h-auto bg-stone-800 px-3 py-2 text-sm ring-stone-700"
             />
           </div>
-          <Input
-            value={description}
-            onChange={(e) => onDescriptionChange(e.target.value)}
-            placeholder="캐릭터 설명"
-            maxLength={500}
-            className="h-auto bg-stone-800 px-3 py-2 text-sm ring-stone-700"
-          />
-          <Input
-            value={personality || ""}
-            onChange={(e) => onPersonalityChange(e.target.value)}
-            placeholder="성격"
-            maxLength={500}
-            className="h-auto bg-stone-800 px-3 py-2 text-sm ring-stone-700"
-          />
-          <Input
-            value={firstMessage || ""}
-            onChange={(e) => onFirstMessageChange(e.target.value)}
-            placeholder="첫 인사말 (채팅 시작 시 캐릭터가 보내는 메시지)"
-            maxLength={100}
-            className="h-auto bg-stone-800 px-3 py-2 text-sm ring-stone-700"
-          />
+          <div>
+            <span className="mb-1.5 block text-xs text-stone-400">캐릭터 성격</span>
+            <Input
+              value={personality || ""}
+              onChange={(e) => onPersonalityChange(e.target.value)}
+              placeholder="캐릭터의 성격 특성을 입력하세요"
+              maxLength={500}
+              className="h-auto bg-stone-800 px-3 py-2 text-sm ring-stone-700"
+            />
+          </div>
+          <div>
+            <span className="mb-1.5 block text-xs text-stone-400">첫 인사말</span>
+            <Input
+              value={firstMessage || ""}
+              onChange={(e) => onFirstMessageChange(e.target.value)}
+              placeholder="채팅 시작 시 캐릭터가 보내는 메시지를 입력하세요"
+              maxLength={100}
+              className="h-auto bg-stone-800 px-3 py-2 text-sm ring-stone-700"
+            />
+          </div>
         </div>
 
         {/* 액션 버튼 */}
@@ -465,19 +484,48 @@ const EditForm = (props: EditFormProps) => {
                 파일 업로드
               </button>
 
-              <button
-                type="button"
-                onClick={() => void onGenerateBackgroundImage()}
-                disabled={useStoryBackground || isGeneratingBackgroundImage}
-                className="flex items-center justify-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {isGeneratingBackgroundImage ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                ) : (
-                  <Sparkles className="h-3 w-3" />
-                )}
-                AI 생성
-              </button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex">
+                      <button
+                        type="button"
+                        onClick={() => void onGenerateBackgroundImage()}
+                        disabled={
+                          useStoryBackground || isGeneratingBackgroundImage || !hasCharacterDetail
+                        }
+                        className="flex items-center justify-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-500 disabled:pointer-events-none disabled:opacity-50"
+                      >
+                        {isGeneratingBackgroundImage ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Sparkles className="h-3 w-3" />
+                        )}
+                        AI 생성
+                      </button>
+                    </span>
+                  </TooltipTrigger>
+                  {!useStoryBackground && !isGeneratingBackgroundImage && !hasCharacterDetail && (
+                    <TooltipContent side="bottom">
+                      <p className="mb-2.5 text-stone-200">
+                        ✨ 설명, 성격을 입력하시면 사용할 수 있어요
+                      </p>
+                      <ul className="space-y-1.5">
+                        <li className={description.trim() ? "text-emerald-400" : "text-red-400"}>
+                          {description.trim() ? "✓" : "✗"} 설명
+                        </li>
+                        <li
+                          className={
+                            (personality ?? "").trim() ? "text-emerald-400" : "text-red-400"
+                          }
+                        >
+                          {(personality ?? "").trim() ? "✓" : "✗"} 성격
+                        </li>
+                      </ul>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
         </div>
@@ -502,19 +550,44 @@ const EditForm = (props: EditFormProps) => {
               ? "AI 음성이 설정되어 있습니다. 다시 생성하려면 버튼을 클릭하세요."
               : "캐릭터 설명과 성격을 기반으로 AI 음성을 생성합니다."}
           </p>
-          <button
-            type="button"
-            onClick={() => void onGenerateVoice()}
-            disabled={isGeneratingVoice}
-            className="flex shrink-0 items-center justify-center gap-1 rounded-md bg-violet-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isGeneratingVoice ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : (
-              <Sparkles className="h-3 w-3" />
-            )}
-            AI 음성 생성
-          </button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-flex shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => void onGenerateVoice()}
+                    disabled={isGeneratingVoice || !hasCharacterDetail}
+                    className="flex items-center justify-center gap-1 rounded-md bg-violet-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-violet-500 disabled:pointer-events-none disabled:opacity-50"
+                  >
+                    {isGeneratingVoice ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3 w-3" />
+                    )}
+                    AI 음성 생성
+                  </button>
+                </span>
+              </TooltipTrigger>
+              {!isGeneratingVoice && !hasCharacterDetail && (
+                <TooltipContent side="bottom">
+                  <p className="mb-2.5 text-stone-200">
+                    ✨ 설명, 성격을 입력하시면 사용할 수 있어요
+                  </p>
+                  <ul className="space-y-1.5">
+                    <li className={description.trim() ? "text-emerald-400" : "text-red-400"}>
+                      {description.trim() ? "✓" : "✗"} 설명
+                    </li>
+                    <li
+                      className={(personality ?? "").trim() ? "text-emerald-400" : "text-red-400"}
+                    >
+                      {(personality ?? "").trim() ? "✓" : "✗"} 성격
+                    </li>
+                  </ul>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
     </div>

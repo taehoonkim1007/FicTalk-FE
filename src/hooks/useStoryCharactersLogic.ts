@@ -13,11 +13,12 @@ import {
   useGenerateCharacters,
   useGenerateTTSSample,
   useGetVoiceId,
-  useStoryCharacters,
+  useMyStoryCharacters,
 } from "@/queries/useStoriesQueries";
 import type {
   Character,
   CharacterDetail,
+  CharacterRole,
   CreateCharacterRequest,
   UpdateCharacterRequest,
   VoiceSettings,
@@ -68,7 +69,7 @@ export const useStoryCharactersLogic = ({
   const [imageModalCharacter, setImageModalCharacter] = useState<{
     id: string;
     name: string;
-    role: string;
+    role: CharacterRole | "";
     description: string;
     personality: string;
   } | null>(null);
@@ -91,7 +92,7 @@ export const useStoryCharactersLogic = ({
   // ==========================================
   // 서버 상태 (React Query)
   // ==========================================
-  const { data: charactersData } = useStoryCharacters(storyId, isEditMode);
+  const { data: charactersData } = useMyStoryCharacters(storyId, isEditMode);
   const existingCharacters = charactersData?.characters ?? initialCharacters;
 
   const { mutateAsync: createCharacterAsync, isPending: isCreatingCharacter } =
@@ -266,7 +267,7 @@ export const useStoryCharactersLogic = ({
   const handleOpenImageModal = (char: {
     id: string;
     name: string;
-    role: string;
+    role: CharacterRole | "";
     description: string;
     personality?: string | null;
   }) => {
@@ -422,6 +423,10 @@ export const useStoryCharactersLogic = ({
   }) => {
     if (!char.description.trim()) {
       toast.error(ERROR_MESSAGES.DESCRIPTION_REQUIRED);
+      return;
+    }
+    if (!char.personality?.trim()) {
+      toast.error(ERROR_MESSAGES.CHARACTER_PERSONALITY_REQUIRED);
       return;
     }
 
