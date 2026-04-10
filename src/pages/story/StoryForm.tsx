@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { FileText, Loader2 } from "lucide-react";
+import { FileText, Loader2, Send } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,9 +18,25 @@ interface StoryFormProps {
   onSubmit: (data: StoryFormData) => void;
   isSubmitting: boolean;
   isEditMode: boolean;
+  showPublishButton?: boolean;
+  onPublishClick?: () => void;
+  isPublishing?: boolean;
 }
 
-export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: StoryFormProps) => {
+export const StoryForm = ({
+  initialData,
+  onSubmit,
+  isSubmitting,
+  isEditMode,
+  showPublishButton = false,
+  onPublishClick,
+  isPublishing = false,
+}: StoryFormProps) => {
+  // ==========================================
+  // 외부 훅
+  // ==========================================
+  const navigate = useNavigate();
+
   // ==========================================
   // 로컬 상태
   // ==========================================
@@ -104,6 +121,13 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
   // ==========================================
   // 핸들러
   // ==========================================
+  // 테스트 채팅 (편집 모드 + 저장된 캐릭터에 한정)
+  const handleTestChat = (characterId: string) => {
+    void navigate("/chat", {
+      state: { characterId, from: `/stories/${storyId}/edit` },
+    });
+  };
+
   // 폼 제출
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -231,6 +255,7 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
               handleGenerateVoice={handleGenerateVoice}
               handleCloseVoicePreviewModal={handleCloseVoicePreviewModal}
               handleConfirmVoice={handleConfirmVoice}
+              handleTestChat={isEditMode ? handleTestChat : undefined}
             />
             {/* 탭 네비게이션 버튼 */}
             <div className="mt-8 flex justify-start">
@@ -247,23 +272,40 @@ export const StoryForm = ({ initialData, onSubmit, isSubmitting, isEditMode }: S
         </Tabs>
       </TooltipProvider>
 
-      {/* 게시하기 버튼 (하단 고정) */}
+      {/* 액션 버튼 (하단 고정) */}
       <div className="fixed right-0 bottom-0 left-0 border-t border-stone-800 bg-stone-950 p-4">
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto flex max-w-3xl gap-3">
           <Button
             type="submit"
-            disabled={!isFormValid || isSubmitting}
-            className="h-12 w-full bg-emerald-600 text-base font-medium text-white hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={!isFormValid || isSubmitting || isPublishing}
+            className="h-12 flex-1 bg-emerald-600 text-base font-medium text-white hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? (
               <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
               <>
                 <FileText className="mr-2 h-5 w-5" />
-                {isEditMode ? "수정하기" : "게시하기"}
+                {isEditMode ? "수정 저장" : "작성하기"}
               </>
             )}
           </Button>
+          {showPublishButton && (
+            <Button
+              type="button"
+              onClick={onPublishClick}
+              disabled={isPublishing || isSubmitting}
+              className="h-12 flex-1 bg-amber-500 text-base font-medium text-black hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isPublishing ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <>
+                  <Send className="mr-2 h-5 w-5" />
+                  공개로 전환
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </div>
     </form>

@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type {
   CharacterDetail,
+  CharacterRole,
   CreateCharacterRequest,
   UpdateCharacterRequest,
 } from "@/types/character";
@@ -49,7 +50,7 @@ interface CharactersSectionProps {
   imageModalCharacter: {
     id: string;
     name: string;
-    role: string;
+    role: CharacterRole | "";
     description: string;
     personality: string;
   } | null;
@@ -82,14 +83,14 @@ interface CharactersSectionProps {
   handleGenerateCharacterBackgroundImage: (char: {
     id: string;
     name: string;
-    role: string;
+    role: CharacterRole | "";
     description: string;
     personality?: string | null;
   }) => void | Promise<void>;
   handleOpenImageModal: (char: {
     id: string;
     name: string;
-    role: string;
+    role: CharacterRole | "";
     description: string;
     personality?: string | null;
   }) => void;
@@ -104,6 +105,8 @@ interface CharactersSectionProps {
   }) => void | Promise<void>;
   handleCloseVoicePreviewModal: () => void;
   handleConfirmVoice: () => void | Promise<void>;
+  /** 테스트 채팅 핸들러 (편집 모드에서만 제공) */
+  handleTestChat?: (characterId: string) => void;
 }
 
 export const CharactersSection = ({
@@ -150,6 +153,7 @@ export const CharactersSection = ({
   handleGenerateVoice,
   handleCloseVoicePreviewModal,
   handleConfirmVoice,
+  handleTestChat,
 }: CharactersSectionProps) => {
   // ==========================================
   // 로컬 상태
@@ -425,17 +429,7 @@ export const CharactersSection = ({
                     useStoryBackground={useStoryBackgroundMap[char.id] || false}
                     onEdit={() => handleStartEditCharacter(char)}
                     onDelete={() => handleDeleteCharacter(char.id)}
-                    onGenerateImage={() => handleOpenImageModal(char)}
-                    onGenerateVoice={() =>
-                      handleGenerateVoice({
-                        id: char.id,
-                        name: char.name,
-                        description: char.description,
-                        personality: char.personality,
-                        firstMessage: char.firstMessage,
-                      })
-                    }
-                    isGeneratingVoice={generatingVoiceCharacterId === char.id}
+                    onTestChat={handleTestChat ? () => handleTestChat(char.id) : undefined}
                     isDeleting={isDeletingCharacter}
                   />
                 ),

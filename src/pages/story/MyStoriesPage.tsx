@@ -20,7 +20,7 @@ import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/messages";
 import { getImageUrl } from "@/lib/image";
 import { useDeleteStory, useMyStories } from "@/queries/useStoriesQueries";
 import { useAuthStore } from "@/stores/useAuthStore";
-import type { Story } from "@/types/story";
+import { STORY_STATUS, type Story } from "@/types/story";
 
 export const MyStoriesPage = () => {
   // ==========================================
@@ -51,7 +51,15 @@ export const MyStoriesPage = () => {
   // 핸들러
   // ==========================================
   // 스토리 선택
+  // - DRAFT: 공개 페이지 접근 불가하므로 편집 페이지로 이동
+  // - PUBLISHED: 공개 상세 페이지로 이동
   const handleStorySelect = (story: Story) => {
+    if (story.status === STORY_STATUS.DRAFT) {
+      void navigate(`/stories/${story.id}/edit`, {
+        state: { from: "/my-stories" },
+      });
+      return;
+    }
     void navigate(`/stories/${story.id}`, {
       state: { from: "/my-stories" },
     });
@@ -162,6 +170,18 @@ export const MyStoriesPage = () => {
                     />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
+                  {/* Status Badge */}
+                  <div className="absolute top-2 left-2">
+                    {story.status === STORY_STATUS.DRAFT ? (
+                      <span className="rounded-full bg-stone-700/90 px-2 py-0.5 text-xs font-semibold text-stone-200">
+                        비공개
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-emerald-500/90 px-2 py-0.5 text-xs font-semibold text-black">
+                        공개
+                      </span>
+                    )}
+                  </div>
                   <div className="absolute right-3 bottom-3 left-3">
                     <h3 className="truncate text-lg leading-tight font-bold text-white">
                       {story.title}

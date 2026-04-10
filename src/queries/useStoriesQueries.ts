@@ -12,10 +12,13 @@ import {
   generateTTSSample,
   getHeroSlides,
   getMyStories,
+  getMyStoryById,
+  getMyStoryCharacters,
   getStories,
   getStoryById,
   getStoryCharacters,
   getVoiceId,
+  publishStory,
   updateStory,
 } from "@/api/stories";
 import type { CreateStoryRequest, GetStoriesParams, UpdateStoryRequest } from "@/types/story";
@@ -33,6 +36,8 @@ export const storiesKeys = {
   characters: (storyId: string) => [...storiesKeys.all, "characters", storyId] as const,
   heroSlides: () => [...storiesKeys.all, "heroSlides"] as const,
   myStories: () => [...storiesKeys.all, "myStories"] as const,
+  myStoryDetail: (id: string) => [...storiesKeys.all, "myStoryDetail", id] as const,
+  myStoryCharacters: (id: string) => [...storiesKeys.all, "myStoryCharacters", id] as const,
 };
 
 // ==========================================
@@ -100,6 +105,31 @@ export const useMyStories = (enabled: boolean = true) => {
   });
 };
 
+/**
+ * 본인 소유 스토리 상세 조회 (DRAFT 포함)
+ * StoryFormPage 편집 모드에서 사용
+ */
+export const useMyStory = (id: string, enabled: boolean = true) => {
+  return useQuery({
+    queryKey: storiesKeys.myStoryDetail(id),
+    queryFn: () => getMyStoryById(id),
+    enabled,
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
+/**
+ * 본인 소유 스토리의 캐릭터 목록 조회 (DRAFT 포함)
+ */
+export const useMyStoryCharacters = (id: string, enabled: boolean = true) => {
+  return useQuery({
+    queryKey: storiesKeys.myStoryCharacters(id),
+    queryFn: () => getMyStoryCharacters(id),
+    enabled,
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
 // ==========================================
 // Mutations
 // ==========================================
@@ -129,6 +159,7 @@ export const useUpdateStory = () => {
     mutationFn: ({ id, data }: { id: string; data: UpdateStoryRequest }) => updateStory(id, data),
     onSuccess: (_, variables) => {
       void queryClient.invalidateQueries({ queryKey: storiesKeys.detail(variables.id) });
+      void queryClient.invalidateQueries({ queryKey: storiesKeys.myStoryDetail(variables.id) });
       void queryClient.invalidateQueries({ queryKey: storiesKeys.lists() });
       void queryClient.invalidateQueries({ queryKey: storiesKeys.myStories() });
     },
@@ -146,6 +177,24 @@ export const useDeleteStory = () => {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: storiesKeys.lists() });
       void queryClient.invalidateQueries({ queryKey: storiesKeys.myStories() });
+    },
+  });
+};
+
+/**
+ * 스토리 게시 (DRAFT → PUBLISHED, 일방향)
+ */
+export const usePublishStory = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => publishStory(id),
+    onSuccess: (_, id) => {
+      void queryClient.invalidateQueries({ queryKey: storiesKeys.detail(id) });
+      void queryClient.invalidateQueries({ queryKey: storiesKeys.myStoryDetail(id) });
+      void queryClient.invalidateQueries({ queryKey: storiesKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: storiesKeys.myStories() });
+      void queryClient.invalidateQueries({ queryKey: storiesKeys.heroSlides() });
     },
   });
 };

@@ -139,8 +139,8 @@ export const CharacterImageModal = ({
           {/* 캐릭터 정보 입력 필드 */}
           <div className="space-y-3">
             <div>
-              <Label htmlFor="char-description" className="mb-1 font-medium text-stone-300">
-                설명
+              <Label htmlFor="char-description" className="mb-1.5 block text-xs text-stone-400">
+                캐릭터 설명
               </Label>
               <Textarea
                 id="char-description"
@@ -148,15 +148,15 @@ export const CharacterImageModal = ({
                 onChange={(e) =>
                   setEditedCharacter({ ...editedCharacter, description: e.target.value })
                 }
-                placeholder="캐릭터에 대한 설명"
+                placeholder="캐릭터에 대한 설명을 입력하세요"
                 maxLength={1000}
                 rows={3}
                 className="min-h-0 bg-stone-800 px-3 py-2 text-sm ring-stone-700"
               />
             </div>
             <div>
-              <Label htmlFor="char-personality" className="mb-1 font-medium text-stone-300">
-                성격
+              <Label htmlFor="char-personality" className="mb-1.5 block text-xs text-stone-400">
+                캐릭터 성격
               </Label>
               <Textarea
                 id="char-personality"
@@ -164,7 +164,7 @@ export const CharacterImageModal = ({
                 onChange={(e) =>
                   setEditedCharacter({ ...editedCharacter, personality: e.target.value })
                 }
-                placeholder="캐릭터의 성격 특성"
+                placeholder="캐릭터의 성격 특성을 입력하세요"
                 maxLength={500}
                 rows={3}
                 className="min-h-0 bg-stone-800 px-3 py-2 text-sm ring-stone-700"

@@ -64,12 +64,38 @@ export const getStoryCharacters = async (storyId: string): Promise<CharactersLis
   const response = await apiClient.get<CharactersListResponse>(`/stories/${storyId}/characters`);
   return response.data;
 };
+
 /**
  * 내가 작성한 스토리 목록 조회
  * 백엔드는 Story[] 배열을 직접 반환함
  */
 export const getMyStories = async (): Promise<Story[]> => {
   const response = await apiClient.get<Story[]>("/stories/me");
+  return response.data;
+};
+
+/**
+ * 본인 소유 스토리 상세 조회 (DRAFT 포함)
+ * StoryFormPage 편집 모드에서 사용
+ */
+export const getMyStoryById = async (id: string): Promise<StoryDetail> => {
+  const response = await apiClient.get<StoryDetail>(`/stories/me/${id}`);
+  return response.data;
+};
+
+/**
+ * 본인 소유 스토리의 캐릭터 목록 조회 (DRAFT 포함)
+ */
+export const getMyStoryCharacters = async (id: string): Promise<CharactersListResponse> => {
+  const response = await apiClient.get<CharactersListResponse>(`/stories/me/${id}/characters`);
+  return response.data;
+};
+
+/**
+ * 스토리 게시 (DRAFT → PUBLISHED, 일방향)
+ */
+export const publishStory = async (id: string): Promise<StoryDetail> => {
+  const response = await apiClient.patch<StoryDetail>(`/stories/${id}/publish`);
   return response.data;
 };
 

@@ -21,8 +21,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getImageUrl } from "@/lib/image";
-import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { isGuestUser } from "@/types/auth";
 import type { ChatCharacter } from "@/types/chat";
@@ -101,41 +101,55 @@ export const ChatHeader = ({
       {/* Text/Voice 모드 토글 버튼 */}
       <div data-tour="chat-mode-toggle">
         {chatMode === "text" ? (
-          // Text → Voice 전환 시 AlertDialog로 요금 안내
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <button
-                disabled={!hasVoice}
-                className={cn(
-                  "flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold transition-all duration-300",
-                  hasVoice
-                    ? "border-stone-700 bg-stone-800 text-stone-400 hover:border-stone-600 hover:text-stone-300"
-                    : "cursor-not-allowed border-stone-800 bg-stone-900 text-stone-600 opacity-50",
-                )}
-                title={!hasVoice ? "이 캐릭터는 음성이 설정되지 않았습니다" : "음성 모드로 전환"}
-              >
-                <Keyboard className="h-3.5 w-3.5" />
-                <span className="tracking-wider uppercase">Text</span>
-              </button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Voice Mode 전환</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Voice Mode 변경 시 추가 요금이 발생합니다. 진행하시겠습니까?
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogAction
-                  onClick={() => onModeChange("voice")}
-                  className="bg-emerald-600 hover:bg-emerald-500"
+          hasVoice ? (
+            // Text → Voice 전환 시 AlertDialog로 요금 안내
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button
+                  className="flex shrink-0 items-center gap-2 rounded-full border border-stone-700 bg-stone-800 px-3 py-1.5 text-xs font-bold text-stone-400 transition-all duration-300 hover:border-stone-600 hover:text-stone-300"
+                  title="음성 모드로 전환"
                 >
-                  확인
-                </AlertDialogAction>
-                <AlertDialogCancel>취소</AlertDialogCancel>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                  <Keyboard className="h-3.5 w-3.5" />
+                  <span className="tracking-wider uppercase">Text</span>
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Voice Mode 전환</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Voice Mode 변경 시 추가 요금이 발생합니다. 진행하시겠습니까?
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogAction
+                    onClick={() => onModeChange("voice")}
+                    className="bg-emerald-600 hover:bg-emerald-500"
+                  >
+                    확인
+                  </AlertDialogAction>
+                  <AlertDialogCancel>취소</AlertDialogCancel>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          ) : (
+            // Voice 미설정 시 툴팁으로 안내
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex shrink-0 items-center gap-2 rounded-full border border-stone-800 bg-stone-900 px-3 py-1.5 text-xs font-bold text-stone-600 opacity-50 transition-all duration-300"
+                  >
+                    <Keyboard className="h-3.5 w-3.5" />
+                    <span className="tracking-wider uppercase">Text</span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p>해당 캐릭터의 Voice가 설정되지 않았습니다.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )
         ) : (
           // Voice → Text 전환은 바로 실행
           <button
